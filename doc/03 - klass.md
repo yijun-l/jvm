@@ -81,5 +81,65 @@ class ObjArrayKlass : public ArrayKlass {}
 class TypeArrayKlass : public ArrayKlass {}
 ```
 
+# Java Objects in JVM Memory
 
+In the JVM, every object consists of two main components: 
+
+**Object Header**: contains metadata such as:
+
+* A Mark Word that stores the object's hash code, garbage collection state, and synchronization information.
+* A Class Pointer that references the class metadata (often called the `Klass` pointer).
+* An additional field (for array objects) that stores the array length.
+
+**Object Body**: stores the actual data fields defined by the class, including any inherited fields.
+
+## Verifying Object Layout with HSDB
+
+The **HotSpot Debugger (HSDB)** is a tool that allows inspection of a running Java program. It makes it possible to observe how Java objects are laid out in memory and how each object's `Klass` pointer links to its class metadata. 
+
+For example, consider the following Java program:
+
+```java
+public class Test {
+	
+	int para1 = 10;
+	int para2 = 20;
+
+    public static void main(String[] args) {
+		Test instance = new Test();
+		int[] type_array = new int[10];
+		Test[] instance_array = new Test[10];
+		while(true);
+    }
+}
+```
+
+This program creates a `Test` object, an `int[]` array of length 10, and a `Test[]` array of length 10. The `while(true)` loop keeps the program running so that HSDB can attach to it. Compile and run this program, then attach HSDB to the running process. 
+
+In HSDB's Stack View for the main thread, the objects created by this program appear in order:
+* A `Test` object
+* An `int[]` array
+* A `Test[]` array
+
+Each local variable holds a reference to the memory address where the corresponding object resides in the heap.
+
+<img src="img/3-2.png" alt="hsdb_stack_view" width="800">
+
+### Test instance object
+
+This `Test` object is located at address `0x713fe7d60` and has two integer fields: `para1` and `para2`.
+
+<img src="img/3-3.png" alt="test_object" width="450">
+
+### int[] array object
+
+This `int[]` array object is located at address `0x713fe7d78` and contains 10 integer elements.
+
+<img src="img/3-4.png" alt="int_array_object" width="450">
+
+### Test[] array object
+
+This `Test[]` array object is located at address `0x713fe7e20` and has length 10, meaning it contains 10 slots for references to `Test` objects.
+
+<img src="img/3-5.png" alt="test_array_object" width="450">
 
