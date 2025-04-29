@@ -1,31 +1,34 @@
 package com.avaya.jvm.hotspot.share.oops;
 
+import lombok.Data;
+
+@Data
 public class InstanceKlass extends Klass{
 
     private int magic;
-    private short minorVersion;
-    private short majorVersion;
+    private int minorVersion;
+    private int majorVersion;
 
-    private short constantPoolCount;
-//    cp_info   constant_pool[constant_pool_count-1];
+    private int constantPoolCount;
+    private ConstantPool constantPool;
 
-    private short accessFlags;
-    private short this_class;
-    private short super_class;
+    private int accessFlags;
+    private int this_class;
+    private int super_class;
 
-    private short interfaceCount;
-//    u2  interface[interfaceCount]
+    private int interfaceCount;
+    private int[] interfaces;
 
-    private short fieldsCount;
+    private int fieldsCount;
 //    field_info  fields[fieldsCount];
 
-    private short methodsCount;
+    private int methodsCount;
 //    method_info methods[methodsCount];
 
-    private short attributesCount;
+    private int attributesCount;
 //    attribute_info attribute[attributesCount];
 
     public InstanceKlass(){
-
+        constantPool = new ConstantPool();
     }
 }
