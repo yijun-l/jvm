@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClassFileParser {
 
@@ -46,17 +48,28 @@ public class ClassFileParser {
         klass.setInterfaces(interfaces);
 
         // u2 fields_count
-        klass.setFieldsCount(dis.readUnsignedShort());
+        int fieldsCount = dis.readUnsignedShort();
+        klass.setFieldsCount(fieldsCount);
         // field_info fields[fields_count];
-        // u2 methods_count;
-        // method_info    methods[methods_count];
-        // u2 attributes_count;
-        // attribute_info attributes[attributes_count];
+        List<FieldInfo> fields = new ArrayList<>();
+        parseFieldInfo(fieldsCount, fields, dis);
+        klass.setFields(fields);
 
-        System.out.printf("Magic: 0x%08X\n", klass.getMagic());
-        System.out.println("Version: " + klass.getMajorVersion() + "." + klass.getMinorVersion());
-        System.out.println("Constant Pool Size: " + klass.getConstantPoolCount());
-        System.out.println("Field Info count: " + klass.getFieldsCount());
+        // u2 methods_count;
+        int methodsCount = dis.readUnsignedShort();
+        klass.setMethodsCount(methodsCount);
+        // method_info    methods[methods_count];
+        List<MethodInfo> methods = new ArrayList<>();
+        parseMethodInfo(methodsCount, methods, dis);
+        klass.setMethods(methods);
+
+        // u2 attributes_count;
+        int attributesCount = dis.readUnsignedShort();
+        klass.setAttributesCount(attributesCount);
+        // attribute_info attributes[attributes_count];
+        List<AttributeInfo> attributes = new ArrayList<>();
+        parseAttributeInfo(attributesCount, attributes, dis);
+        klass.setAttributes(attributes);
 
         return klass;
     }
@@ -99,6 +112,50 @@ public class ClassFileParser {
                 }
                 default -> throw new IOException("Unsupported constant pool tag: " + tag);
             }
+        }
+    }
+
+    private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis) throws IOException {
+        for (int i = 0; i < fieldsCount; i++){
+            FieldInfo fieldInfoEntry = new FieldInfo();
+            fieldInfoEntry.setAccessFlags(dis.readUnsignedShort());
+            fieldInfoEntry.setNameIndex(dis.readUnsignedShort());
+            fieldInfoEntry.setDescriptorIndex(dis.readUnsignedShort());
+            int attributeCount = dis.readUnsignedShort();
+            fieldInfoEntry.setAttributesCount(attributeCount);
+            List<AttributeInfo> attributes = new ArrayList<>();
+            parseAttributeInfo(attributeCount, attributes, dis);
+            fieldInfoEntry.setAttributes(attributes);
+            fields.add(fieldInfoEntry);
+        }
+    }
+// parseMethodInfo(methodsCount, methods, dis);
+    private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis) throws IOException {
+        for (int i = 0; i < methodsCount; i++){
+            MethodInfo MethodInfoEntry = new MethodInfo();
+            MethodInfoEntry.setAccessFlags(dis.readUnsignedShort());
+            MethodInfoEntry.setNameIndex(dis.readUnsignedShort());
+            MethodInfoEntry.setDescriptorIndex(dis.readUnsignedShort());
+            int attributeCount = dis.readUnsignedShort();
+            MethodInfoEntry.setAttributesCount(attributeCount);
+            List<AttributeInfo> attributes = new ArrayList<>();
+            parseAttributeInfo(attributeCount, attributes, dis);
+            MethodInfoEntry.setAttributes(attributes);
+            methods.add(MethodInfoEntry);
+        }
+    }
+
+
+    private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis) throws IOException{
+        for (int i = 0; i < attributeCount; i++){
+            AttributeInfo attributeInfoEntry = new AttributeInfo();
+            attributeInfoEntry.setAttributeNameIndex(dis.readUnsignedShort());
+            int length = dis.readInt();
+            attributeInfoEntry.setAttributeLength(length);
+            byte[] info = new byte[length];
+            dis.readFully(info);
+            attributeInfoEntry.setInfo(info);
+            attributes.add(attributeInfoEntry);
         }
     }
 }

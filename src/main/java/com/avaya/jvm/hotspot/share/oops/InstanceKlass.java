@@ -2,6 +2,8 @@ package com.avaya.jvm.hotspot.share.oops;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class InstanceKlass extends Klass{
 
@@ -20,13 +22,13 @@ public class InstanceKlass extends Klass{
     private int[] interfaces;
 
     private int fieldsCount;
-//    field_info  fields[fieldsCount];
+    private List<FieldInfo> fields;
 
     private int methodsCount;
-//    method_info methods[methodsCount];
+    private List<MethodInfo> methods;
 
     private int attributesCount;
-//    attribute_info attribute[attributesCount];
+    private List<AttributeInfo> attributes;
 
     public InstanceKlass(){
         constantPool = new ConstantPool();
