@@ -1,0 +1,4 @@
+package com.avaya.jvm.hotspot.share.memory;
+
+public class StackObj extends AllocatedObj{
+}

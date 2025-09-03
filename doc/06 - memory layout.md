@@ -77,10 +77,6 @@ It is usually marked as read-only and may be shared among processes running the 
 
 When a Java program runs, the JVM manages its memory using several well-defined regions. These regions are designed for specific purposes (some are shared among all threads, while others are private to each thread).
 
-- The **method area** is typically located in the memory-mapped region of the JVM process.
-
-- The **heap**, **stack**, **native method stack**, and **PC register** are allocated from the JVM's heap memory (memory obtained from the OS).
-
 <img src="img/6-2.png" alt="jvm_memory_layout" width="380">
 
 ### Method Area
