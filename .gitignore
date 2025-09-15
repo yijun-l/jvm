@@ -2,7 +2,6 @@
 .mvn/
 target/
 src/test/
-pom.xml
 
 # Compiled class file
 *.class

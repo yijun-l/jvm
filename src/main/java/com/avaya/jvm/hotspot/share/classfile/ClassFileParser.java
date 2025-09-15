@@ -8,10 +8,16 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ClassFileParser {
 
+    private static Logger logger = LoggerFactory.getLogger(ClassFileParser.class);
+
     public static InstanceKlass parseClassFile(byte[] content) throws IOException {
+
+        logger.debug("Start parsing Class file");
         InstanceKlass klass = new InstanceKlass();
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(content));
 
