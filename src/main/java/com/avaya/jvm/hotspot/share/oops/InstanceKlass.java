@@ -74,9 +74,11 @@ public class InstanceKlass extends Klass{
             System.out.println("    attribute#" + i + ": ");
             System.out.println("      attributeNameIndex: " + attributeInfoEntry.getAttributeNameIndex());
             System.out.println("      attributeLength: " + attributeInfoEntry.getAttributeLength());
-            byte[] info = attributeInfoEntry.getInfo();
-            String hexString = String.format("%0" + (info.length * 2) + "X", new BigInteger(1, info));
-            System.out.println("      info: " + hexString);
+            if (attributeInfoEntry instanceof UnknownAttribute) {
+                byte[] info = ((UnknownAttribute) attributeInfoEntry).getInfo();
+                String hexString = String.format("%0" + (info.length * 2) + "X", new BigInteger(1, info));
+                System.out.println("      info: " + hexString);
+            }
         }
     }
 }

@@ -1,8 +1,11 @@
 package com.avaya.jvm.hotspot.share.oops;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
 public class ConstantPool {
 
     private List<ConstantInfo> entries;

@@ -10,7 +10,7 @@ public class App {
     public static void main(String[] args) throws IOException {
         BootClassLoader.loadKlass("com.avaya.jvm.example.HelloWorld");
         InstanceKlass klass = BootClassLoader.findLoadedKlass("com.avaya.jvm.example.HelloWorld");
-        InstanceKlass.printKlass(klass);
+        // InstanceKlass.printKlass(klass);
     }
 
 }

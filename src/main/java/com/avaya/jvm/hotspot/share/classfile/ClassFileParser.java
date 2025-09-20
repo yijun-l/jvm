@@ -58,7 +58,7 @@ public class ClassFileParser {
         klass.setFieldsCount(fieldsCount);
         // field_info fields[fields_count];
         List<FieldInfo> fields = new ArrayList<>();
-        parseFieldInfo(fieldsCount, fields, dis);
+        parseFieldInfo(fieldsCount, fields, dis, klass.getConstantPool());
         klass.setFields(fields);
 
         // u2 methods_count;
@@ -66,7 +66,7 @@ public class ClassFileParser {
         klass.setMethodsCount(methodsCount);
         // method_info    methods[methods_count];
         List<MethodInfo> methods = new ArrayList<>();
-        parseMethodInfo(methodsCount, methods, dis);
+        parseMethodInfo(methodsCount, methods, dis, klass.getConstantPool());
         klass.setMethods(methods);
 
         // u2 attributes_count;
@@ -74,7 +74,7 @@ public class ClassFileParser {
         klass.setAttributesCount(attributesCount);
         // attribute_info attributes[attributes_count];
         List<AttributeInfo> attributes = new ArrayList<>();
-        parseAttributeInfo(attributesCount, attributes, dis);
+        parseAttributeInfo(attributesCount, attributes, dis, klass.getConstantPool());
         klass.setAttributes(attributes);
 
         return klass;
@@ -121,7 +121,7 @@ public class ClassFileParser {
         }
     }
 
-    private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis) throws IOException {
+    private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis, ConstantPool cp) throws IOException {
         for (int i = 0; i < fieldsCount; i++){
             FieldInfo fieldInfoEntry = new FieldInfo();
             fieldInfoEntry.setAccessFlags(dis.readUnsignedShort());
@@ -130,13 +130,13 @@ public class ClassFileParser {
             int attributeCount = dis.readUnsignedShort();
             fieldInfoEntry.setAttributesCount(attributeCount);
             List<AttributeInfo> attributes = new ArrayList<>();
-            parseAttributeInfo(attributeCount, attributes, dis);
+            parseAttributeInfo(attributeCount, attributes, dis, cp);
             fieldInfoEntry.setAttributes(attributes);
             fields.add(fieldInfoEntry);
         }
     }
 // parseMethodInfo(methodsCount, methods, dis);
-    private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis) throws IOException {
+    private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis, ConstantPool cp) throws IOException {
         for (int i = 0; i < methodsCount; i++){
             MethodInfo MethodInfoEntry = new MethodInfo();
             MethodInfoEntry.setAccessFlags(dis.readUnsignedShort());
@@ -145,23 +145,24 @@ public class ClassFileParser {
             int attributeCount = dis.readUnsignedShort();
             MethodInfoEntry.setAttributesCount(attributeCount);
             List<AttributeInfo> attributes = new ArrayList<>();
-            parseAttributeInfo(attributeCount, attributes, dis);
+            parseAttributeInfo(attributeCount, attributes, dis, cp);
             MethodInfoEntry.setAttributes(attributes);
             methods.add(MethodInfoEntry);
         }
     }
 
 
-    private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis) throws IOException{
+    private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis, ConstantPool cp) throws IOException{
         for (int i = 0; i < attributeCount; i++){
-            AttributeInfo attributeInfoEntry = new AttributeInfo();
-            attributeInfoEntry.setAttributeNameIndex(dis.readUnsignedShort());
-            int length = dis.readInt();
-            attributeInfoEntry.setAttributeLength(length);
-            byte[] info = new byte[length];
-            dis.readFully(info);
-            attributeInfoEntry.setInfo(info);
-            attributes.add(attributeInfoEntry);
+//            UnknownAttribute attributeInfoEntry = new UnknownAttribute();
+//            attributeInfoEntry.setAttributeNameIndex(dis.readUnsignedShort());
+//            int length = dis.readInt();
+//            attributeInfoEntry.setAttributeLength(length);
+//            byte[] info = new byte[length];
+//            dis.readFully(info);
+//            attributeInfoEntry.setInfo(info);
+
+            attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }
 }
