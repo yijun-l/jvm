@@ -24,6 +24,7 @@ public abstract class AttributeInfo {
             case CODE -> attr = new CodeAttribute();
             case LINE_NUMBER_TABLE -> attr = new LineNumberTable();
             case LOCAL_VARIABLE_TABLE -> attr = new LocalVariableTable();
+            case SOURCE_FILE -> attr = new SourceFile();
             default -> attr = new UnknownAttribute();
         }
         attr.parse(dis, cp);

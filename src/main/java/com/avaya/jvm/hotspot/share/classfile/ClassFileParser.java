@@ -11,6 +11,35 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * ClassFile corresponds to the ClassFile structure in the JVM class file format.
+ * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.1
+ *
+ * ClassFile {
+ *     u4             magic;
+ *     u2             minor_version;
+ *     u2             major_version;
+ *     u2             constant_pool_count;
+ *     cp_info        constant_pool[constant_pool_count-1];
+ *     u2             access_flags;
+ *     u2             this_class;
+ *     u2             super_class;
+ *     u2             interfaces_count;
+ *     u2             interfaces[interfaces_count];
+ *     u2             fields_count;
+ *     field_info     fields[fields_count];
+ *     u2             methods_count;
+ *     method_info    methods[methods_count];
+ *     u2             attributes_count;
+ *     attribute_info attributes[attributes_count];
+ * }
+ *
+ * The ClassFile structure is the top-level representation of a compiled
+ * Java class or interface. It defines the class version, constant pool,
+ * access permissions, class hierarchy, and includes field, method,
+ * and attribute information.
+ */
+
 public class ClassFileParser {
 
     private static Logger logger = LoggerFactory.getLogger(ClassFileParser.class);
@@ -154,14 +183,6 @@ public class ClassFileParser {
 
     private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis, ConstantPool cp) throws IOException{
         for (int i = 0; i < attributeCount; i++){
-//            UnknownAttribute attributeInfoEntry = new UnknownAttribute();
-//            attributeInfoEntry.setAttributeNameIndex(dis.readUnsignedShort());
-//            int length = dis.readInt();
-//            attributeInfoEntry.setAttributeLength(length);
-//            byte[] info = new byte[length];
-//            dis.readFully(info);
-//            attributeInfoEntry.setInfo(info);
-
             attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }
