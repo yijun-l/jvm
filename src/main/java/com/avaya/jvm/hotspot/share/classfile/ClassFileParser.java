@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
 
 public class ClassFileParser {
 
-    private static Logger logger = LoggerFactory.getLogger(ClassFileParser.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClassFileParser.class);
 
     public static InstanceKlass parseClassFile(byte[] content) throws IOException {
 
-        logger.debug("Start parsing Class file");
+        logger.info("Start parsing Class file");
         InstanceKlass klass = new InstanceKlass();
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(content));
 
@@ -177,6 +177,12 @@ public class ClassFileParser {
             parseAttributeInfo(attributeCount, attributes, dis, cp);
             MethodInfoEntry.setAttributes(attributes);
             methods.add(MethodInfoEntry);
+            for (AttributeInfo attr : MethodInfoEntry.getAttributes()) {
+                if (attr instanceof CodeAttribute) {
+                    ((CodeAttribute) attr).getCode().setMethod(MethodInfoEntry);
+                    break;
+                }
+            }
         }
     }
 
