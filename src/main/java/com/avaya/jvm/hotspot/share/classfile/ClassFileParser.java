@@ -5,7 +5,6 @@ import com.avaya.jvm.hotspot.share.oops.*;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -46,7 +45,7 @@ public class ClassFileParser {
 
     public static InstanceKlass parseClassFile(byte[] content) throws IOException {
 
-        logger.info("Start parsing Class file");
+        logger.info("Start parsing Class file...");
         InstanceKlass klass = new InstanceKlass();
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(content));
 
@@ -57,11 +56,14 @@ public class ClassFileParser {
         klass.setMinorVersion(dis.readUnsignedShort());
         // u2 major_version
         klass.setMajorVersion(dis.readUnsignedShort());
+        logger.debug("├── magic: {}", klass.getMagic());
+        logger.debug("├── version: minor {}, major {}", klass.getMinorVersion(), klass.getMajorVersion());
 
         // u2 constant_pool_count
         klass.setConstantPoolCount(dis.readUnsignedShort());
         // cp_info constant_pool[constant_pool_count-1];
-        parseConstantPool(klass.getConstantPoolCount(), dis, klass.getConstantPool());
+        klass.getConstantPool().parse(klass.getConstantPoolCount(), dis);
+        logger.debug("├── constant pool count: ", klass.getConstantPoolCount());
 
         // u2 access_flags
         klass.setAccessFlags(dis.readUnsignedShort());
@@ -71,6 +73,7 @@ public class ClassFileParser {
 
         // u2 super_class
         klass.setSuper_class(dis.readUnsignedShort());
+        logger.debug("├── access flag: {}, this: {}, super: {}", klass.getAccessFlags(), klass.getThis_class(), klass.getSuper_class());
 
         // u2 interfaces_count
         int interfaceCount = dis.readUnsignedShort();
@@ -81,6 +84,7 @@ public class ClassFileParser {
             interfaces[i] = dis.readUnsignedShort();
         }
         klass.setInterfaces(interfaces);
+        logger.debug("├── interfaces count: ", klass.getInterfaceCount());
 
         // u2 fields_count
         int fieldsCount = dis.readUnsignedShort();
@@ -89,65 +93,29 @@ public class ClassFileParser {
         List<FieldInfo> fields = new ArrayList<>();
         parseFieldInfo(fieldsCount, fields, dis, klass.getConstantPool());
         klass.setFields(fields);
+        logger.debug("├── fields count: ", klass.getFieldsCount());
 
         // u2 methods_count;
         int methodsCount = dis.readUnsignedShort();
         klass.setMethodsCount(methodsCount);
+        logger.debug("├── methods count: ", klass.getMethodsCount());
         // method_info    methods[methods_count];
         List<MethodInfo> methods = new ArrayList<>();
-        parseMethodInfo(methodsCount, methods, dis, klass.getConstantPool());
+        parseMethodInfo(methodsCount, methods, dis, klass.getConstantPool(), klass);
         klass.setMethods(methods);
+
 
         // u2 attributes_count;
         int attributesCount = dis.readUnsignedShort();
         klass.setAttributesCount(attributesCount);
+        logger.debug("├── attributes count: ", klass.getAttributesCount());
         // attribute_info attributes[attributes_count];
         List<AttributeInfo> attributes = new ArrayList<>();
         parseAttributeInfo(attributesCount, attributes, dis, klass.getConstantPool());
         klass.setAttributes(attributes);
+        logger.info("Class file parsing completed.");
 
         return klass;
-    }
-
-    private static void parseConstantPool(int constantPoolCount, DataInputStream dis, ConstantPool constantPool) throws IOException {
-
-        for (int index = 1; index < constantPoolCount; index++){
-            int tag = dis.readUnsignedByte();
-            ConstantTag type = ConstantTag.fromValue(tag);
-            switch(type){
-                case JVM_CONSTANT_UTF8 -> {
-                    int length = dis.readUnsignedShort();
-                    byte[] buffer = new byte[length];
-                    dis.readFully(buffer);
-                    String value = new String(buffer, StandardCharsets.UTF_8);
-                    constantPool.add(new ConstantUtf8Info(value));
-                }
-                case JVM_CONSTANT_CLASS -> {
-                    int nameIndex = dis.readUnsignedShort();
-                    constantPool.add(new ConstantClassInfo(nameIndex));
-                }
-                case JVM_CONSTANT_STRING -> {
-                    int stringIndex = dis.readUnsignedShort();
-                    constantPool.add(new ConstantStringInfo(stringIndex));
-                }
-                case JVM_CONSTANT_FIELDREF -> {
-                    int classIndex = dis.readUnsignedShort();
-                    int nameAndTypeIndex = dis.readUnsignedShort();
-                    constantPool.add(new ConstantFieldrefInfo(classIndex, nameAndTypeIndex));
-                }
-                case JVM_CONSTANT_METHODREF -> {
-                    int classIndex = dis.readUnsignedShort();
-                    int nameAndTypeIndex = dis.readUnsignedShort();
-                    constantPool.add(new ConstantMethodrefInfo(classIndex, nameAndTypeIndex));
-                }
-                case JVM_CONSTANT_NAME_AND_TYPE -> {
-                    int nameIndex = dis.readUnsignedShort();
-                    int descriptorIndex = dis.readUnsignedShort();
-                    constantPool.add(new ConstantNameAndTypeInfo(nameIndex, descriptorIndex));
-                }
-                default -> throw new IOException("Unsupported constant pool tag: " + tag);
-            }
-        }
     }
 
     private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis, ConstantPool cp) throws IOException {
@@ -164,31 +132,17 @@ public class ClassFileParser {
             fields.add(fieldInfoEntry);
         }
     }
-// parseMethodInfo(methodsCount, methods, dis);
-    private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis, ConstantPool cp) throws IOException {
+
+    private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis, ConstantPool cp, InstanceKlass klass) throws IOException {
         for (int i = 0; i < methodsCount; i++){
-            MethodInfo MethodInfoEntry = new MethodInfo();
-            MethodInfoEntry.setAccessFlags(dis.readUnsignedShort());
-            MethodInfoEntry.setNameIndex(dis.readUnsignedShort());
-            MethodInfoEntry.setDescriptorIndex(dis.readUnsignedShort());
-            int attributeCount = dis.readUnsignedShort();
-            MethodInfoEntry.setAttributesCount(attributeCount);
-            List<AttributeInfo> attributes = new ArrayList<>();
-            parseAttributeInfo(attributeCount, attributes, dis, cp);
-            MethodInfoEntry.setAttributes(attributes);
-            methods.add(MethodInfoEntry);
-            for (AttributeInfo attr : MethodInfoEntry.getAttributes()) {
-                if (attr instanceof CodeAttribute) {
-                    ((CodeAttribute) attr).getCode().setMethod(MethodInfoEntry);
-                    break;
-                }
-            }
+            logger.debug("│   ├── method#{}: ", i);
+            methods.add(MethodInfo.parse(dis, cp, klass));
         }
     }
 
-
     private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis, ConstantPool cp) throws IOException{
         for (int i = 0; i < attributeCount; i++){
+            logger.debug("│   ├── attribute#{}: ", i+1);
             attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }

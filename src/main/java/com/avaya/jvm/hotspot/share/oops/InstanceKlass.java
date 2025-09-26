@@ -57,8 +57,8 @@ public class InstanceKlass extends Klass{
             MethodInfo methodInfoEntry = klass.getMethods().get(i);
             System.out.println("  Method#" + i + ": ");
             System.out.println("    accessFlags: " + methodInfoEntry.getAccessFlags());
-            System.out.println("    nameIndex: " + methodInfoEntry.getNameIndex());
-            System.out.println("    descriptorIndex: " + methodInfoEntry.getDescriptorIndex());
+            System.out.println("    nameIndex: " + methodInfoEntry.getName());
+            System.out.println("    descriptorIndex: " + methodInfoEntry.getDescriptor());
             System.out.println("    attributeCount: " + methodInfoEntry.getAttributesCount());
             printAttributes(methodInfoEntry.getAttributesCount(), methodInfoEntry.getAttributes());
         }

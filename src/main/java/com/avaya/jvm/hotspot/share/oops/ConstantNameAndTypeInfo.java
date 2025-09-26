@@ -13,4 +13,12 @@ public class ConstantNameAndTypeInfo extends ConstantInfo {
         this.nameIndex = nameIndex;
         this.descriptorIndex = descriptorIndex;
     }
+
+    public String resolveName(ConstantPool cp){
+        if (!(cp.getEntries().get(nameIndex) instanceof ConstantUtf8Info)){
+            throw new IllegalStateException("Name index " + nameIndex + " is not ConstantUtf8Info");
+        }
+        ConstantUtf8Info utf8Info = (ConstantUtf8Info) cp.getEntries().get(nameIndex);
+        return utf8Info.getValue();
+    }
 }
