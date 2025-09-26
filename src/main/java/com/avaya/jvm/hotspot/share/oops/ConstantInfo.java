@@ -1,6 +1,9 @@
 package com.avaya.jvm.hotspot.share.oops;
 
-abstract class ConstantInfo {
+import lombok.Data;
+
+@Data
+public class ConstantInfo {
     ConstantTag tag;
 }
 

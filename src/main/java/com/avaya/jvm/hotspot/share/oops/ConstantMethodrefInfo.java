@@ -21,4 +21,12 @@ public class ConstantMethodrefInfo extends ConstantInfo {
         ConstantClassInfo classInfo = (ConstantClassInfo) cp.getEntries().get(classIndex);
         return classInfo.resolveName(cp);
     }
+
+    public String resolveMethodName(ConstantPool cp){
+        if (!(cp.getEntries().get(nameAndTypeIndex) instanceof ConstantNameAndTypeInfo)){
+            throw new IllegalStateException("NameAndTypeIndex index " + nameAndTypeIndex + " is not ConstantClassInfo");
+        }
+        ConstantNameAndTypeInfo nameAndTypeInfo = (ConstantNameAndTypeInfo) cp.getEntries().get(nameAndTypeIndex);
+        return nameAndTypeInfo.resolveName(cp);
+    }
 }
