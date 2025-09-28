@@ -11,4 +11,13 @@ public class FieldInfo {
     private int descriptorIndex;
     private int attributesCount;
     List<AttributeInfo> attributes;
+
+    public Descriptor resolveDescriptor(ConstantPool constantPool){
+        Object entry = constantPool.getEntries().get(descriptorIndex);
+        if (!(entry instanceof ConstantUtf8Info)) {
+            throw new IllegalStateException("Descriptor index " + descriptorIndex + " is not ConstantUtf8Info");
+        }
+        ConstantUtf8Info utf8Info = (ConstantUtf8Info) entry;
+        return new Descriptor(utf8Info.getValue());
+    }
 }

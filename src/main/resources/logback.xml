@@ -10,8 +10,8 @@
         Log levels from low to high:
         ALL < TRACE < DEBUG < INFO < WARN < ERROR < OFF
     -->
-
-    <root level="OFF">
+.
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 

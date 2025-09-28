@@ -16,7 +16,7 @@ public class MethodInfo {
 
     private int accessFlags;
     private String name;
-    private String descriptor;
+    private Descriptor descriptor;
     private int attributesCount;
     private List<AttributeInfo> attributes;
 
@@ -30,9 +30,13 @@ public class MethodInfo {
         }
 
         int descriptorIndex = dis.readUnsignedShort();
-        if (cp.getEntries().get(descriptorIndex) instanceof ConstantUtf8Info){
-            MethodInfoEntry.setDescriptor(((ConstantUtf8Info) cp.getEntries().get(descriptorIndex)).getValue());
+
+        Object entry = cp.getEntries().get(descriptorIndex);
+        if (!(entry instanceof ConstantUtf8Info)) {
+            throw new IllegalStateException("Descriptor index " + descriptorIndex + " is not ConstantUtf8Info");
         }
+        ConstantUtf8Info utf8Info = (ConstantUtf8Info) entry;
+        MethodInfoEntry.setDescriptor(new Descriptor(utf8Info.getValue()));
 
         int attributeCount = dis.readUnsignedShort();
         MethodInfoEntry.setAttributesCount(attributeCount);
@@ -55,4 +59,5 @@ public class MethodInfo {
             attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }
+
 }
