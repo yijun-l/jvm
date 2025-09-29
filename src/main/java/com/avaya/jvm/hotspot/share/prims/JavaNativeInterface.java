@@ -14,10 +14,10 @@ public class JavaNativeInterface {
     private static Logger logger = LoggerFactory.getLogger(JavaNativeInterface.class);
 
     public static MethodInfo getMain(InstanceKlass klass){
-        logger.debug("Searching entry function...");
+        logger.info("Searching entry function...");
         for (MethodInfo method:klass.getMethods()){
             if (method.getName().equals("main")){
-                logger.debug("  main() found.");
+                logger.debug("    main() found.");
                 return method;
             }
         }
@@ -25,7 +25,7 @@ public class JavaNativeInterface {
     }
 
     public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        logger.debug("function {} is called", method.getName());
+        logger.debug("function {}() is called", method.getName());
 
         JavaThread thread = Threads.getCurrentThread();
         CodeAttribute code_attr = null;

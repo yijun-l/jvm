@@ -41,13 +41,13 @@ public class LineNumberTable extends AttributeInfo {
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
         this.setAttributeLength(dis.readInt());
         this.setLineNumberTableLength(dis.readUnsignedShort());
-        logger.debug("  Line Number Table Attribute parsing:");
+        logger.debug("│   │   ├── Line Number Table Attribute parsing:");
         for (int i = 0; i < this.getLineNumberTableLength(); i++){
             LineNumberEntry entry = new LineNumberEntry();
             entry.setStartPc(dis.readUnsignedShort());
             entry.setLineNumber(dis.readUnsignedShort());
             this.getEntries().add(entry);
-            logger.debug("    [{}] start pc: {}, line number: {}", i, entry.startPc, entry.lineNumber);
+            logger.debug("│   │   │   ├── [{}] start pc: {}, line number: {}", i, entry.startPc, entry.lineNumber);
         }
     }
 }

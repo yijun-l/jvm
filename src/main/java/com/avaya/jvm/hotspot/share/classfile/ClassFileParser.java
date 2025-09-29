@@ -5,8 +5,11 @@ import com.avaya.jvm.hotspot.share.oops.*;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.avaya.jvm.hotspot.share.utilities.ClassAccessFlags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +48,7 @@ public class ClassFileParser {
 
     public static InstanceKlass parseClassFile(byte[] content) throws IOException {
 
-        logger.info("Start parsing Class file...");
+        logger.info("Start class file parsing...");
         InstanceKlass klass = new InstanceKlass();
         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(content));
 
@@ -56,14 +59,14 @@ public class ClassFileParser {
         klass.setMinorVersion(dis.readUnsignedShort());
         // u2 major_version
         klass.setMajorVersion(dis.readUnsignedShort());
-        logger.debug("├── magic: {}", klass.getMagic());
+        logger.debug("├── magic: 0x{}", Integer.toHexString(klass.getMagic()).toUpperCase());
         logger.debug("├── version: minor {}, major {}", klass.getMinorVersion(), klass.getMajorVersion());
 
         // u2 constant_pool_count
         klass.setConstantPoolCount(dis.readUnsignedShort());
         // cp_info constant_pool[constant_pool_count-1];
         klass.getConstantPool().parse(klass.getConstantPoolCount(), dis);
-        logger.debug("├── constant pool count: ", klass.getConstantPoolCount());
+        logger.debug("├── constant pool count: {}", klass.getConstantPoolCount());
 
         // u2 access_flags
         klass.setAccessFlags(dis.readUnsignedShort());
@@ -73,7 +76,13 @@ public class ClassFileParser {
 
         // u2 super_class
         klass.setSuper_class(dis.readUnsignedShort());
-        logger.debug("├── access flag: {}, this: {}, super: {}", klass.getAccessFlags(), klass.getThis_class(), klass.getSuper_class());
+        logger.debug("├── access flag: {}", ClassAccessFlags.flagsToString(klass.getAccessFlags()) );
+
+        ConstantClassInfo thisClass = (ConstantClassInfo) klass.getConstantPool().getEntries().get(klass.getThis_class());
+        logger.debug("├── this: {}", thisClass.resolveName(klass.getConstantPool()));
+
+        ConstantClassInfo superClass = (ConstantClassInfo) klass.getConstantPool().getEntries().get(klass.getSuper_class());
+        logger.debug("├── super: {}", superClass.resolveName(klass.getConstantPool()));
 
         // u2 interfaces_count
         int interfaceCount = dis.readUnsignedShort();
@@ -84,7 +93,7 @@ public class ClassFileParser {
             interfaces[i] = dis.readUnsignedShort();
         }
         klass.setInterfaces(interfaces);
-        logger.debug("├── interfaces count: ", klass.getInterfaceCount());
+        logger.debug("├── interfaces count: {}", klass.getInterfaceCount());
 
         // u2 fields_count
         int fieldsCount = dis.readUnsignedShort();
@@ -93,12 +102,12 @@ public class ClassFileParser {
         List<FieldInfo> fields = new ArrayList<>();
         parseFieldInfo(fieldsCount, fields, dis, klass.getConstantPool());
         klass.setFields(fields);
-        logger.debug("├── fields count: ", klass.getFieldsCount());
+        logger.debug("├── fields count: {}", klass.getFieldsCount());
 
         // u2 methods_count;
         int methodsCount = dis.readUnsignedShort();
         klass.setMethodsCount(methodsCount);
-        logger.debug("├── methods count: ", klass.getMethodsCount());
+        logger.debug("├── methods count: {}", klass.getMethodsCount());
         // method_info    methods[methods_count];
         List<MethodInfo> methods = new ArrayList<>();
         parseMethodInfo(methodsCount, methods, dis, klass.getConstantPool(), klass);
@@ -108,12 +117,12 @@ public class ClassFileParser {
         // u2 attributes_count;
         int attributesCount = dis.readUnsignedShort();
         klass.setAttributesCount(attributesCount);
-        logger.debug("├── attributes count: ", klass.getAttributesCount());
+        logger.debug("├── attributes count: {}", klass.getAttributesCount());
         // attribute_info attributes[attributes_count];
         List<AttributeInfo> attributes = new ArrayList<>();
         parseAttributeInfo(attributesCount, attributes, dis, klass.getConstantPool());
         klass.setAttributes(attributes);
-        logger.info("Class file parsing completed.");
+        logger.info("Complete class file parsing.");
 
         return klass;
     }
@@ -142,7 +151,7 @@ public class ClassFileParser {
 
     private static void parseAttributeInfo(int attributeCount, List<AttributeInfo> attributes, DataInputStream dis, ConstantPool cp) throws IOException{
         for (int i = 0; i < attributeCount; i++){
-            logger.debug("│   ├── attribute#{}: ", i+1);
+            logger.debug("│   ├── attribute#{}: ", i);
             attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }

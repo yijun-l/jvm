@@ -38,10 +38,8 @@ public class LocalVariableTable extends AttributeInfo {
     public static class LocalVariableEntry {
         private int startPc;
         private int length;
-        // nameIndex;
         private String name;
-        // descriptorIndex
-        private String descriptor;
+        private Descriptor descriptor;
         private int index;
     }
 
@@ -49,7 +47,7 @@ public class LocalVariableTable extends AttributeInfo {
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
         this.setAttributeLength(dis.readInt());
         this.setLocalVariableTableLength(dis.readUnsignedShort());
-        logger.debug("  Local Variable Table Attribute parsing:");
+        logger.debug("│   │   ├── Local Variable Table Attribute parsing:");
         for(int i = 0; i < this.getLocalVariableTableLength(); i++) {
             LocalVariableEntry entry = new LocalVariableEntry();
             entry.setStartPc(dis.readUnsignedShort());
@@ -60,11 +58,11 @@ public class LocalVariableTable extends AttributeInfo {
             }
             ConstantInfo descriptor = cp.getEntries().get(dis.readUnsignedShort());
             if (descriptor instanceof ConstantUtf8Info){
-                entry.setDescriptor(((ConstantUtf8Info) descriptor).getValue());
+                entry.setDescriptor(new Descriptor(((ConstantUtf8Info) descriptor).getValue()));
             }
             entry.setIndex(dis.readUnsignedShort());
             this.getEntries().add(entry);
-            logger.debug("    [{}] start pc: {}, length: {}. name: {}, descriptor: {}, index: {}", i, entry.startPc, entry.length, entry.name, entry.descriptor, entry.index);
+            logger.debug("│   │   │   ├── [{}] start pc: {}, length: {}. name: {}, descriptor: {}, index: {}", i, entry.startPc, entry.length, entry.name, entry.descriptor.fieldToString(), entry.index);
         }
     }
 }

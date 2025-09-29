@@ -1,5 +1,6 @@
 package com.avaya.jvm.hotspot.share.oops;
 
+import com.avaya.jvm.hotspot.share.utilities.MemberAccessFlags;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class MethodInfo {
 
         int attributeCount = dis.readUnsignedShort();
         MethodInfoEntry.setAttributesCount(attributeCount);
-        logger.debug("│   ├── access: {}, name: {}, descriptor: {}", MethodInfoEntry.getAccessFlags(), MethodInfoEntry.getName(), MethodInfoEntry.getDescriptor());
+        logger.debug("│   ├── access: {}, name: {}, descriptor: {}", MemberAccessFlags.flagsToString(MethodInfoEntry.getAccessFlags()), MethodInfoEntry.getName(), MethodInfoEntry.getDescriptor().methodToString());
         List<AttributeInfo> attributes = new ArrayList<>();
         parseAttributeInfo(attributeCount, attributes, dis, cp);
         MethodInfoEntry.setAttributes(attributes);

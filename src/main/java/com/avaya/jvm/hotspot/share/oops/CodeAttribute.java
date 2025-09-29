@@ -43,8 +43,6 @@ public class CodeAttribute extends AttributeInfo {
     private int maxLocals;
 
     private int codeLength;
-    // TODO: use a dedicated class BytecodeStream to store Java instructions
-    //private byte[] code;
     private BytecodeStream code;
 
     private int exceptionTableLength;
@@ -67,16 +65,14 @@ public class CodeAttribute extends AttributeInfo {
         this.maxStack = dis.readUnsignedShort();
         this.maxLocals = dis.readUnsignedShort();
         this.codeLength = dis.readInt();
-//        this.code = new byte[this.codeLength];
-//        dis.read(code);
         byte[] tmp = new byte[this.codeLength];
         dis.read(tmp);
         this.code = new BytecodeStream(tmp, this);
 
-        logger.debug("Code Attribute parsing:");
-        logger.debug("  Max Stack: {}, Max Locals: {}", this.maxStack, this.maxLocals);
-        logger.debug("  Code: {}", String.format("%0" + (this.code.getCodes().length * 2) + "X", new BigInteger(1, this.code.getCodes())));
-        logger.debug("  Exception Tables:");
+        logger.debug("│   ├── Code Attribute parsing...");
+        logger.debug("│   │   ├── Max Stack: {}, Max Locals: {}", this.maxStack, this.maxLocals);
+        logger.debug("│   │   ├── Code: {}", String.format("%0" + (this.code.getCodes().length * 2) + "X", new BigInteger(1, this.code.getCodes())));
+        logger.debug("│   │   ├── Exception Tables:");
         this.exceptionTableLength = dis.readUnsignedShort();
         for (int i = 0; i < this.exceptionTableLength; i++){
             ExceptionTableEntry entry = new ExceptionTableEntry();
@@ -89,8 +85,9 @@ public class CodeAttribute extends AttributeInfo {
         }
         this.attributeCount = dis.readUnsignedShort();
 
-        logger.debug("  Attributes:");
+
         for (int i = 0; i< this.attributeCount; i++){
+            logger.debug("│   │   ├── Attributes#{}:", i);
             this.attributes.add(AttributeInfo.parseAttribute(dis, cp));
         }
     }

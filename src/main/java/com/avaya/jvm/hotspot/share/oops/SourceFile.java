@@ -26,12 +26,12 @@ public class SourceFile extends AttributeInfo{
     private String sourceFile;
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
-        logger.debug("  Source File Attribute parsing:");
+        logger.debug("│   ├── Source File Attribute parsing:");
         this.attributeLength = dis.readInt();
         ConstantInfo sourceFile = cp.getEntries().get(dis.readUnsignedShort());
         if (sourceFile instanceof ConstantUtf8Info){
             this.sourceFile = ((ConstantUtf8Info) sourceFile).getValue();
         }
-        logger.debug("    source file: {}", this.sourceFile);
+        logger.debug("│   │   ├── source file: {}", this.sourceFile);
     }
 }

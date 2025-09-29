@@ -36,4 +36,12 @@ public class Descriptor {
         return returnType == null;
     }
 
+    public String methodToString(){
+        return returnType + " (" + field + ")";
+    }
+
+    public String fieldToString(){
+        return field;
+    }
+
 }
