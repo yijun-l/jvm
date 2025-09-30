@@ -30,4 +30,14 @@ public class OperandStack {
         return stack[top--].getRef();
     }
 
+    public void pushInt(int num){
+        top++;
+        stack[top].setType(ValueType.T_INT);
+        stack[top].setNum(num);
+    }
+
+    public int popInt(){
+        return stack[top--].getNum();
+    }
+
 }

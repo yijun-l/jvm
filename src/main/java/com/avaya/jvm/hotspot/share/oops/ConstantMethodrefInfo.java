@@ -29,4 +29,12 @@ public class ConstantMethodrefInfo extends ConstantInfo {
         ConstantNameAndTypeInfo nameAndTypeInfo = (ConstantNameAndTypeInfo) cp.getEntries().get(nameAndTypeIndex);
         return nameAndTypeInfo.resolveName(cp);
     }
+
+    public Descriptor resolveMethodDescriptor(ConstantPool cp){
+        if (!(cp.getEntries().get(nameAndTypeIndex) instanceof ConstantNameAndTypeInfo)){
+            throw new IllegalStateException("NameAndTypeIndex index " + nameAndTypeIndex + " is not ConstantClassInfo");
+        }
+        ConstantNameAndTypeInfo nameAndTypeInfo = (ConstantNameAndTypeInfo) cp.getEntries().get(nameAndTypeIndex);
+        return nameAndTypeInfo.resolveDescriptor(cp);
+    }
 }

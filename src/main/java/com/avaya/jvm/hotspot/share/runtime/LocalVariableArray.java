@@ -27,4 +27,13 @@ public class LocalVariableArray {
         return this.locals[index].getRef();
     }
 
+    public void setInt(int index, int num){
+        this.locals[index].setType(ValueType.T_INT);
+        this.locals[index].setNum(num);
+    }
+
+    public int getInt(int index) {
+        return this.locals[index].getNum();
+    }
+
 }

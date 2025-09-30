@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 public class BytecodeInterpreter {
@@ -21,6 +24,11 @@ public class BytecodeInterpreter {
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
         while (!bytecodeStream.end()){
             switch (Bytecodes.fromOpcode(bytecodeStream.getU1())){
+                // 16
+                case BIPUSH -> {
+                    logger.debug("BIPUSH >> ");
+                    frame.getOperandStack().pushInt(bytecodeStream.getU1());
+                }
                 // 18
                 case LDC -> {
                     logger.debug("LDC >> ");
@@ -36,6 +44,18 @@ public class BytecodeInterpreter {
                         }
                     }
 
+                }
+
+                // 27
+                case ILOAD_1 -> {
+                    logger.debug("ISTORE_1 >> ");
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(1));
+                }
+
+                // 60
+                case ISTORE_1 -> {
+                    logger.debug("ISTORE_1 >> ");
+                    frame.getLocals().setInt(1, frame.getOperandStack().popInt());
                 }
 
                 // 177
@@ -61,12 +81,52 @@ public class BytecodeInterpreter {
                     ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
                     String objectClassName = methodref.resolveClassName(constantPool);
                     String methodName = methodref.resolveMethodName(constantPool);
-                    // TODO: will check parameter number later after completed Descriptor class
-                    Object argument = frame.getOperandStack().popRef();
-                    Object targetObject = frame.getOperandStack().popRef();
-                    Class<?> targetClass = targetObject.getClass();
-                    Method method = targetClass.getMethod(methodName, argument.getClass());
-                    method.invoke(targetObject, argument);
+                    Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
+
+                     // Handle JRE library classes (java.*).
+                    if (objectClassName.startsWith("java")){
+                        // Store parameter values and classes
+                        List<Object> objectList = new ArrayList<>();
+                        List<Class<?>> classList = new ArrayList<>();
+
+                        // Get the descriptor of method parameters
+                        String parameters = methodDescriptor.getField();
+                        /**
+                         * JVM operand stack push order for a method call:
+                         * object reference > arg1 > arg2 > ... > argN
+                         *
+                         * When popping from the stack, the order is:
+                         * argN > ... > arg2 > arg1 > object reference
+                         *
+                         * So we parse the descriptor in reverse and pop parameters accordingly.
+                         */
+                        for(int i = parameters.length() - 1 ; i >= 0; i-- ){
+                            switch (parameters.charAt(i)){
+                                case 'I' -> {
+                                    classList.add(int.class);
+                                    objectList.add(frame.getOperandStack().popInt());
+                                }
+
+                                case ';' -> {
+                                    int start = parameters.lastIndexOf('L', i);
+                                    String className = parameters.substring(start + 1, i).replace('/', '.');
+                                    classList.add(Class.forName(className));
+                                    Object tmp = frame.getOperandStack().popRef();
+                                    objectList.add(tmp);
+                                    i = start;
+                                }
+                            }
+                        }
+                        // Reverse lists to match Java method call order: arg1, arg2, ..., argN
+                        Collections.reverse(classList);
+                        Collections.reverse(objectList);
+
+                        // Pop the object reference owning this method
+                        Object targetObject = frame.getOperandStack().popRef();
+                        // Retrieve the Method object, and invoke it
+                        Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
+                        method.invoke(targetObject, objectList.toArray(new Object[0]));
+                    }
                 }
             }
         }
