@@ -28,7 +28,7 @@ public class BytecodeInterpreter {
                     switch (constantEntry.getTag()){
                         case JVM_CONSTANT_STRING -> {
                             String stringValue = ((ConstantStringInfo)constantEntry).resolveString(constantPool);
-                            frame.getOperandStack().push(new StackValue(ValueType.OBJECT, stringValue));
+                            frame.getOperandStack().pushRef(stringValue);
                         }
                         default -> {
                             //TODO: other types for LDC
@@ -53,7 +53,7 @@ public class BytecodeInterpreter {
                     Class<?> clazz = Class.forName(className);
                     Field clazzField = clazz.getField(fieldName);
                     Object fieldObject = clazzField.get(null);
-                    frame.getOperandStack().push(new StackValue(ValueType.OBJECT, fieldObject));
+                    frame.getOperandStack().pushRef(fieldObject);
                 }
                 // 182
                 case INVOKEVIRTUAL -> {
@@ -62,8 +62,8 @@ public class BytecodeInterpreter {
                     String objectClassName = methodref.resolveClassName(constantPool);
                     String methodName = methodref.resolveMethodName(constantPool);
                     // TODO: will check parameter number later after completed Descriptor class
-                    Object argument = frame.getOperandStack().pop().getValue();
-                    Object targetObject = frame.getOperandStack().pop().getValue();
+                    Object argument = frame.getOperandStack().popRef();
+                    Object targetObject = frame.getOperandStack().popRef();
                     Class<?> targetClass = targetObject.getClass();
                     Method method = targetClass.getMethod(methodName, argument.getClass());
                     method.invoke(targetObject, argument);
