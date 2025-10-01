@@ -3,8 +3,21 @@ package com.avaya.jvm.example;
 public class HelloWorld {
 
     public static void main(String[] args) {
-        int i = 10;
+
+        byte b = 3;
+        System.out.println(b);
+
+        char c = 69;
+        System.out.println(c);
+
+        int i = 1200;
         System.out.println(i);
+
+        short s = 100;
+        System.out.println(s);
+
+        boolean v = true;
+        System.out.println(v);
 
         System.out.println("hello, world");
     }

@@ -3,8 +3,6 @@ package com.avaya.jvm.hotspot.share.interpreter;
 import com.avaya.jvm.hotspot.share.oops.*;
 import com.avaya.jvm.hotspot.share.runtime.JavaThread;
 import com.avaya.jvm.hotspot.share.runtime.JavaVFrame;
-import com.avaya.jvm.hotspot.share.runtime.StackValue;
-import com.avaya.jvm.hotspot.share.utilities.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +22,42 @@ public class BytecodeInterpreter {
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
         while (!bytecodeStream.end()){
             switch (Bytecodes.fromOpcode(bytecodeStream.getU1())){
-                // 16
+                // 2, push constant -1 onto the operand stack
+                case ICONST_M1 -> {
+                    logger.debug("ICONST_M1 >> ");
+                    frame.getOperandStack().pushInt(-1);
+                }
+                // 3, push constant 0 onto the operand stack
+                case ICONST_0 -> {
+                    logger.debug("ICONST_0 >> ");
+                    frame.getOperandStack().pushInt(0);
+                }
+                // 4
+                case ICONST_1 -> {
+                    logger.debug("ICONST_1 >> ");
+                    frame.getOperandStack().pushInt(1);
+                }
+                // 5
+                case ICONST_2 -> {
+                    logger.debug("ICONST_2 >> ");
+                    frame.getOperandStack().pushInt(2);
+                }
+                // 6
+                case ICONST_3 -> {
+                    logger.debug("ICONST_3 >> ");
+                    frame.getOperandStack().pushInt(3);
+                }
+                // 7
+                case ICONST_4 -> {
+                    logger.debug("ICONST_4 >> ");
+                    frame.getOperandStack().pushInt(4);
+                }
+                // 8
+                case ICONST_5 -> {
+                    logger.debug("ICONST_5 >> ");
+                    frame.getOperandStack().pushInt(5);
+                }
+                // 16, push a byte constant (from next byte in bytecode) onto the operand stack
                 case BIPUSH -> {
                     logger.debug("BIPUSH >> ");
                     frame.getOperandStack().pushInt(bytecodeStream.getU1());
@@ -43,21 +76,71 @@ public class BytecodeInterpreter {
                             logger.debug("other types");
                         }
                     }
-
                 }
-
+                // 21, load int from local variable (index specified by next byte) onto stack
+                case ILOAD -> {
+                    logger.debug("ILOAD >> ");
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(bytecodeStream.getU1()));
+                }
+                // 26, load int from local variable 0 onto stack
+                case ILOAD_0 -> {
+                    logger.debug("ILOAD_0 >> ");
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(0));
+                }
                 // 27
                 case ILOAD_1 -> {
-                    logger.debug("ISTORE_1 >> ");
+                    logger.debug("ILOAD_1 >> ");
                     frame.getOperandStack().pushInt(frame.getLocals().getInt(1));
                 }
-
+                // 28
+                case ILOAD_2 -> {
+                    logger.debug("ILOAD_2 >> ");
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(2));
+                }
+                // 29
+                case ILOAD_3 -> {
+                    logger.debug("ILOAD_3 >> ");
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(3));
+                }
+                // 54, store int from stack into local variable (index specified by next byte)
+                case ISTORE -> {
+                    logger.debug("ISTORE >> ");
+                    frame.getLocals().setInt(bytecodeStream.getU1(), frame.getOperandStack().popInt());
+                }
+                // 59, store int from stack into local variable 0
+                case ISTORE_0 -> {
+                    logger.debug("ISTORE_0 >> ");
+                    frame.getLocals().setInt(0, frame.getOperandStack().popInt());
+                }
                 // 60
                 case ISTORE_1 -> {
                     logger.debug("ISTORE_1 >> ");
                     frame.getLocals().setInt(1, frame.getOperandStack().popInt());
                 }
-
+                // 61
+                case ISTORE_2 -> {
+                    logger.debug("ISTORE_2 >> ");
+                    frame.getLocals().setInt(2, frame.getOperandStack().popInt());
+                }
+                // 62
+                case ISTORE_3 -> {
+                    logger.debug("ISTORE_3 >> ");
+                    frame.getLocals().setInt(3, frame.getOperandStack().popInt());
+                }
+                // 145, int to byte (signed, with sign extension)
+                case I2B -> {
+                    logger.debug("I2B >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    intValue  = (intValue  << 24) >> 24;
+                    frame.getOperandStack().pushInt(intValue );
+                }
+                // 146, int to char (unsigned, high 16 bits cleared)
+                case I2C -> {
+                    logger.debug("I2C >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    intValue  = intValue  & 0xFFFF;
+                    frame.getOperandStack().pushInt(intValue);
+                }
                 // 177
                 case RETURN -> {
                     logger.debug("RETURN >> ");
@@ -102,11 +185,26 @@ public class BytecodeInterpreter {
                          */
                         for(int i = parameters.length() - 1 ; i >= 0; i-- ){
                             switch (parameters.charAt(i)){
+                                case 'B' -> {
+                                    classList.add(byte.class);
+                                    objectList.add((byte)frame.getOperandStack().popInt());
+                                }
+                                case 'C' -> {
+                                    classList.add(char.class);
+                                    objectList.add((char)frame.getOperandStack().popInt());
+                                }
                                 case 'I' -> {
                                     classList.add(int.class);
                                     objectList.add(frame.getOperandStack().popInt());
                                 }
-
+                                case 'S' -> {
+                                    classList.add(short.class);
+                                    objectList.add((short)frame.getOperandStack().popInt());
+                                }
+                                case 'Z' -> {
+                                    classList.add(boolean.class);
+                                    objectList.add(frame.getOperandStack().popInt() != 0);
+                                }
                                 case ';' -> {
                                     int start = parameters.lastIndexOf('L', i);
                                     String className = parameters.substring(start + 1, i).replace('/', '.');
