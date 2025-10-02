@@ -40,4 +40,14 @@ public class OperandStack {
         return stack[top--].getNum();
     }
 
+    public void pushFloat(float num){
+        top++;
+        stack[top].setType(ValueType.T_FLOAT);
+        stack[top].setNum(Float.floatToRawIntBits(num));
+    }
+
+    public float popFloat(){
+        return Float.intBitsToFloat(stack[top--].getNum());
+    }
+
 }

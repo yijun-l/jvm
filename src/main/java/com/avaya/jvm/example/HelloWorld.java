@@ -19,6 +19,9 @@ public class HelloWorld {
         boolean v = true;
         System.out.println(v);
 
+        float f = 3.14f;
+        System.out.println(f);
+
         System.out.println("hello, world");
     }
 

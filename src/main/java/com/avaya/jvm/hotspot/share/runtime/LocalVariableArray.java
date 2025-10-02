@@ -36,4 +36,13 @@ public class LocalVariableArray {
         return this.locals[index].getNum();
     }
 
+    public void setFloat(int index, float num){
+        this.locals[index].setType(ValueType.T_FLOAT);
+        this.locals[index].setNum(Float.floatToRawIntBits(num));
+    }
+
+    public float getFloat(int index) {
+        return Float.intBitsToFloat(this.locals[index].getNum());
+    }
+
 }

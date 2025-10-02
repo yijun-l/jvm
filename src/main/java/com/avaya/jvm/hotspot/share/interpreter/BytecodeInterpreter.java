@@ -57,6 +57,21 @@ public class BytecodeInterpreter {
                     logger.debug("ICONST_5 >> ");
                     frame.getOperandStack().pushInt(5);
                 }
+                // 11, push float constant 0.0f onto the operand stack
+                case FCONST_0 -> {
+                    logger.debug("FCONST_0 >> ");
+                    frame.getOperandStack().pushFloat(0.0f);
+                }
+                // 12
+                case FCONST_1 -> {
+                    logger.debug("FCONST_1 >> ");
+                    frame.getOperandStack().pushFloat(1.0f);
+                }
+                // 13
+                case FCONST_2 -> {
+                    logger.debug("FCONST_2 >> ");
+                    frame.getOperandStack().pushFloat(2.0f);
+                }
                 // 16, push a byte constant (from next byte in bytecode) onto the operand stack
                 case BIPUSH -> {
                     logger.debug("BIPUSH >> ");
@@ -67,6 +82,14 @@ public class BytecodeInterpreter {
                     logger.debug("LDC >> ");
                     ConstantInfo constantEntry = constantPool.getEntries().get(bytecodeStream.getU1());
                     switch (constantEntry.getTag()){
+                        case JVM_CONSTANT_INTEGER -> {
+                            int intValue = ((ConstantIntegerInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushInt(intValue);
+                        }
+                        case JVM_CONSTANT_FLOAT -> {
+                            float floatValue = ((ConstantFloatInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushFloat(floatValue);
+                        }
                         case JVM_CONSTANT_STRING -> {
                             String stringValue = ((ConstantStringInfo)constantEntry).resolveString(constantPool);
                             frame.getOperandStack().pushRef(stringValue);
@@ -81,6 +104,11 @@ public class BytecodeInterpreter {
                 case ILOAD -> {
                     logger.debug("ILOAD >> ");
                     frame.getOperandStack().pushInt(frame.getLocals().getInt(bytecodeStream.getU1()));
+                }
+                // 23, load float from local variable (index specified by next byte) onto stack
+                case FLOAD -> {
+                    logger.debug("FLOAD >> ");
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(bytecodeStream.getU1()));
                 }
                 // 26, load int from local variable 0 onto stack
                 case ILOAD_0 -> {
@@ -102,10 +130,35 @@ public class BytecodeInterpreter {
                     logger.debug("ILOAD_3 >> ");
                     frame.getOperandStack().pushInt(frame.getLocals().getInt(3));
                 }
+                // 34, load float from local variable 0 onto stack
+                case FLOAD_0 -> {
+                    logger.debug("FLOAD_0 >> ");
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(0));
+                }
+                // 35
+                case FLOAD_1 -> {
+                    logger.debug("FLOAD_1 >> ");
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(1));
+                }
+                // 36
+                case FLOAD_2 -> {
+                    logger.debug("FLOAD_2 >> ");
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(2));
+                }
+                // 37
+                case FLOAD_3 -> {
+                    logger.debug("FLOAD_3 >> ");
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(3));
+                }
                 // 54, store int from stack into local variable (index specified by next byte)
                 case ISTORE -> {
                     logger.debug("ISTORE >> ");
                     frame.getLocals().setInt(bytecodeStream.getU1(), frame.getOperandStack().popInt());
+                }
+                // 56, store int from stack into local variable (index specified by next byte)
+                case FSTORE -> {
+                    logger.debug("FSTORE >> ");
+                    frame.getLocals().setFloat(bytecodeStream.getU1(), frame.getOperandStack().popFloat());
                 }
                 // 59, store int from stack into local variable 0
                 case ISTORE_0 -> {
@@ -126,6 +179,26 @@ public class BytecodeInterpreter {
                 case ISTORE_3 -> {
                     logger.debug("ISTORE_3 >> ");
                     frame.getLocals().setInt(3, frame.getOperandStack().popInt());
+                }
+                // 67, store float from stack into local variable 0
+                case FSTORE_0 -> {
+                    logger.debug("FSTORE_0 >> ");
+                    frame.getLocals().setFloat(0, frame.getOperandStack().popFloat());
+                }
+                // 68
+                case FSTORE_1 -> {
+                    logger.debug("FSTORE_1 >> ");
+                    frame.getLocals().setFloat(1, frame.getOperandStack().popFloat());
+                }
+                // 69
+                case FSTORE_2 -> {
+                    logger.debug("FSTORE_2 >> ");
+                    frame.getLocals().setFloat(2, frame.getOperandStack().popFloat());
+                }
+                // 70
+                case FSTORE_3 -> {
+                    logger.debug("FSTORE_3 >> ");
+                    frame.getLocals().setFloat(3, frame.getOperandStack().popFloat());
                 }
                 // 145, int to byte (signed, with sign extension)
                 case I2B -> {
@@ -192,6 +265,10 @@ public class BytecodeInterpreter {
                                 case 'C' -> {
                                     classList.add(char.class);
                                     objectList.add((char)frame.getOperandStack().popInt());
+                                }
+                                case 'F' -> {
+                                    classList.add(float.class);
+                                    objectList.add(frame.getOperandStack().popFloat());
                                 }
                                 case 'I' -> {
                                     classList.add(int.class);

@@ -35,6 +35,16 @@ public class ConstantPool {
                     String value = new String(buffer, StandardCharsets.UTF_8);
                     add(new ConstantUtf8Info(value));
                 }
+                // 3
+                case JVM_CONSTANT_INTEGER -> {
+                    int intValue = dis.readInt();
+                    add(new ConstantIntegerInfo(intValue));
+                }
+                // 4
+                case JVM_CONSTANT_FLOAT -> {
+                    float floatValue = dis.readFloat();
+                    add(new ConstantFloatInfo(floatValue));
+                }
                 case JVM_CONSTANT_CLASS -> {
                     int nameIndex = dis.readUnsignedShort();
                     add(new ConstantClassInfo(nameIndex));
