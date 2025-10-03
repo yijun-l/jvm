@@ -50,4 +50,19 @@ public class OperandStack {
         return Float.intBitsToFloat(stack[top--].getNum());
     }
 
+    public void pushLong(long num){
+        top++;
+        stack[top].setType(ValueType.T_LONG);
+        stack[top].setNum((int) (num & 0xFFFFFFFFL));
+        top++;
+        stack[top].setType(ValueType.T_LONG);
+        stack[top].setNum((int) (num >>> 32));
+    }
+
+    public long popLong(){
+        int high = stack[top--].getNum();
+        int low = stack[top--].getNum();
+        return ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
+    }
+
 }

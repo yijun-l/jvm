@@ -22,6 +22,9 @@ public class HelloWorld {
         float f = 3.14f;
         System.out.println(f);
 
+        long j = 8888;
+        System.out.println(j);
+
         System.out.println("hello, world");
     }
 

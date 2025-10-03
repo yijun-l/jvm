@@ -57,6 +57,16 @@ public class BytecodeInterpreter {
                     logger.debug("ICONST_5 >> ");
                     frame.getOperandStack().pushInt(5);
                 }
+                // 9, push long constant 0 onto the operand stack
+                case LCONST_0 -> {
+                    logger.debug("LCONST_0 >> ");
+                    frame.getOperandStack().pushLong(0);
+                }
+                // 10
+                case LCONST_1 -> {
+                    logger.debug("LCONST_1 >> ");
+                    frame.getOperandStack().pushLong(1);
+                }
                 // 11, push float constant 0.0f onto the operand stack
                 case FCONST_0 -> {
                     logger.debug("FCONST_0 >> ");
@@ -100,10 +110,30 @@ public class BytecodeInterpreter {
                         }
                     }
                 }
+                // 20, load long or double from constant pool (index specified by next 2 bytes) onto stack
+                case LDC2_W -> {
+                    logger.debug("LDC2_W >> ");
+                    ConstantInfo constantEntry = constantPool.getEntries().get(bytecodeStream.getU2());
+                    switch (constantEntry.getTag()){
+                        case JVM_CONSTANT_LONG -> {
+                            long longValue = ((ConstantLongInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushLong(longValue);
+                        }
+                        default -> {
+                            //TODO: other types for LDC2_W
+                            logger.debug("other types");
+                        }
+                    }
+                }
                 // 21, load int from local variable (index specified by next byte) onto stack
                 case ILOAD -> {
                     logger.debug("ILOAD >> ");
                     frame.getOperandStack().pushInt(frame.getLocals().getInt(bytecodeStream.getU1()));
+                }
+                // 22, load long from local variable (index specified by next byte) onto stack
+                case LLOAD -> {
+                    logger.debug("LLOAD >> ");
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(bytecodeStream.getU1()));
                 }
                 // 23, load float from local variable (index specified by next byte) onto stack
                 case FLOAD -> {
@@ -130,6 +160,26 @@ public class BytecodeInterpreter {
                     logger.debug("ILOAD_3 >> ");
                     frame.getOperandStack().pushInt(frame.getLocals().getInt(3));
                 }
+                // 30, load long from local variable 0 onto stack
+                case LLOAD_0 -> {
+                    logger.debug("LLOAD_0 >> ");
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(0));
+                }
+                // 31
+                case LLOAD_1 -> {
+                    logger.debug("LLOAD_1 >> ");
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(1));
+                }
+                // 32
+                case LLOAD_2 -> {
+                    logger.debug("LLOAD_2 >> ");
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(2));
+                }
+                // 33
+                case LLOAD_3 -> {
+                    logger.debug("LLOAD_3 >> ");
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(3));
+                }
                 // 34, load float from local variable 0 onto stack
                 case FLOAD_0 -> {
                     logger.debug("FLOAD_0 >> ");
@@ -155,6 +205,11 @@ public class BytecodeInterpreter {
                     logger.debug("ISTORE >> ");
                     frame.getLocals().setInt(bytecodeStream.getU1(), frame.getOperandStack().popInt());
                 }
+                // 55, store long from stack into local variable (index specified by next byte)
+                case LSTORE -> {
+                    logger.debug("LSTORE >> ");
+                    frame.getLocals().setLong(bytecodeStream.getU1(), frame.getOperandStack().popLong());
+                }
                 // 56, store int from stack into local variable (index specified by next byte)
                 case FSTORE -> {
                     logger.debug("FSTORE >> ");
@@ -179,6 +234,26 @@ public class BytecodeInterpreter {
                 case ISTORE_3 -> {
                     logger.debug("ISTORE_3 >> ");
                     frame.getLocals().setInt(3, frame.getOperandStack().popInt());
+                }
+                // 63, store long from stack into local variable 0
+                case LSTORE_0 -> {
+                    logger.debug("LSTORE_0 >> ");
+                    frame.getLocals().setLong(0, frame.getOperandStack().popLong());
+                }
+                // 64
+                case LSTORE_1 -> {
+                    logger.debug("LSTORE_1 >> ");
+                    frame.getLocals().setLong(1, frame.getOperandStack().popLong());
+                }
+                // 65
+                case LSTORE_2 -> {
+                    logger.debug("LSTORE_2 >> ");
+                    frame.getLocals().setLong(2, frame.getOperandStack().popLong());
+                }
+                // 66
+                case LSTORE_3 -> {
+                    logger.debug("LSTORE_3 >> ");
+                    frame.getLocals().setLong(3, frame.getOperandStack().popLong());
                 }
                 // 67, store float from stack into local variable 0
                 case FSTORE_0 -> {
@@ -273,6 +348,10 @@ public class BytecodeInterpreter {
                                 case 'I' -> {
                                     classList.add(int.class);
                                     objectList.add(frame.getOperandStack().popInt());
+                                }
+                                case 'J' -> {
+                                    classList.add(long.class);
+                                    objectList.add(frame.getOperandStack().popLong());
                                 }
                                 case 'S' -> {
                                     classList.add(short.class);

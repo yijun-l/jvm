@@ -45,4 +45,16 @@ public class LocalVariableArray {
         return Float.intBitsToFloat(this.locals[index].getNum());
     }
 
+    public void setLong(int index, long num){
+        this.locals[index].setType(ValueType.T_LONG);
+        this.locals[index].setNum((int) (num & 0xFFFFFFFFL));
+        this.locals[index+1].setType(ValueType.T_LONG);
+        this.locals[index+1].setNum((int) (num >>> 32));
+    }
+
+    public long getLong(int index) {
+        int low = this.locals[index].getNum();
+        int high = this.locals[index+1].getNum();
+        return ((long)low & 0xFFFFFFFFL) | ((long)high << 32);
+    }
 }

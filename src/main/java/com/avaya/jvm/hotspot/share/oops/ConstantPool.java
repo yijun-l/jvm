@@ -22,7 +22,7 @@ public class ConstantPool {
         entries.add(info);
     }
 
-    public void parse(int constantPoolCount, DataInputStream dis) throws IOException, IOException {
+    public void parse(int constantPoolCount, DataInputStream dis) throws IOException {
 
         for (int index = 1; index < constantPoolCount; index++){
             int tag = dis.readUnsignedByte();
@@ -44,6 +44,14 @@ public class ConstantPool {
                 case JVM_CONSTANT_FLOAT -> {
                     float floatValue = dis.readFloat();
                     add(new ConstantFloatInfo(floatValue));
+                }
+                // 5
+                case JVM_CONSTANT_LONG -> {
+                    int high = dis.readInt();
+                    int low = dis.readInt();
+                    add(new ConstantLongInfo( (((long)high << 32) | ((long)low & 0xFFFFFFFFL)) ) );
+                    index++;
+                    add(null);
                 }
                 case JVM_CONSTANT_CLASS -> {
                     int nameIndex = dis.readUnsignedShort();
