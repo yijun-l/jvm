@@ -82,6 +82,16 @@ public class BytecodeInterpreter {
                     logger.debug("FCONST_2 >> ");
                     frame.getOperandStack().pushFloat(2.0f);
                 }
+                // 14, push double constant 0.0 onto the operand stack
+                case DCONST_0 -> {
+                    logger.debug("DCONST_0 >> ");
+                    frame.getOperandStack().pushDouble(0.0);
+                }
+                // 15
+                case DCONST_1 -> {
+                    logger.debug("DCONST_1 >> ");
+                    frame.getOperandStack().pushDouble(1.0);
+                }
                 // 16, push a byte constant (from next byte in bytecode) onto the operand stack
                 case BIPUSH -> {
                     logger.debug("BIPUSH >> ");
@@ -106,7 +116,7 @@ public class BytecodeInterpreter {
                         }
                         default -> {
                             //TODO: other types for LDC
-                            logger.debug("other types");
+                            logger.debug("Other type in LDC.");
                         }
                     }
                 }
@@ -119,9 +129,12 @@ public class BytecodeInterpreter {
                             long longValue = ((ConstantLongInfo)constantEntry).getValue();
                             frame.getOperandStack().pushLong(longValue);
                         }
+                        case JVM_CONSTANT_DOUBLE -> {
+                            double doubleValue = ((ConstantDoubleInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushDouble(doubleValue);
+                        }
                         default -> {
-                            //TODO: other types for LDC2_W
-                            logger.debug("other types");
+                            logger.debug("Other type in LDC2_W.");
                         }
                     }
                 }
@@ -139,6 +152,11 @@ public class BytecodeInterpreter {
                 case FLOAD -> {
                     logger.debug("FLOAD >> ");
                     frame.getOperandStack().pushFloat(frame.getLocals().getFloat(bytecodeStream.getU1()));
+                }
+                // 24, load double from local variable (index specified by next byte) onto stack
+                case DLOAD -> {
+                    logger.debug("DLOAD >> ");
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(bytecodeStream.getU1()));
                 }
                 // 26, load int from local variable 0 onto stack
                 case ILOAD_0 -> {
@@ -200,6 +218,26 @@ public class BytecodeInterpreter {
                     logger.debug("FLOAD_3 >> ");
                     frame.getOperandStack().pushFloat(frame.getLocals().getFloat(3));
                 }
+                // 38, load double from local variable 0 onto stack
+                case DLOAD_0 -> {
+                    logger.debug("DLOAD_0 >> ");
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(0));
+                }
+                // 39
+                case DLOAD_1 -> {
+                    logger.debug("DLOAD_1 >> ");
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(1));
+                }
+                // 40
+                case DLOAD_2 -> {
+                    logger.debug("DLOAD_2 >> ");
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(2));
+                }
+                // 41
+                case DLOAD_3 -> {
+                    logger.debug("DLOAD_3 >> ");
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(3));
+                }
                 // 54, store int from stack into local variable (index specified by next byte)
                 case ISTORE -> {
                     logger.debug("ISTORE >> ");
@@ -210,10 +248,15 @@ public class BytecodeInterpreter {
                     logger.debug("LSTORE >> ");
                     frame.getLocals().setLong(bytecodeStream.getU1(), frame.getOperandStack().popLong());
                 }
-                // 56, store int from stack into local variable (index specified by next byte)
+                // 56, store float from stack into local variable (index specified by next byte)
                 case FSTORE -> {
                     logger.debug("FSTORE >> ");
                     frame.getLocals().setFloat(bytecodeStream.getU1(), frame.getOperandStack().popFloat());
+                }
+                // 57, store double from stack into local variable (index specified by next byte)
+                case DSTORE -> {
+                    logger.debug("DSTORE >> ");
+                    frame.getLocals().setDouble(bytecodeStream.getU1(), frame.getOperandStack().popDouble());
                 }
                 // 59, store int from stack into local variable 0
                 case ISTORE_0 -> {
@@ -274,6 +317,26 @@ public class BytecodeInterpreter {
                 case FSTORE_3 -> {
                     logger.debug("FSTORE_3 >> ");
                     frame.getLocals().setFloat(3, frame.getOperandStack().popFloat());
+                }
+                // 71, store double from stack into local variable 0
+                case DSTORE_0 -> {
+                    logger.debug("DSTORE_0 >> ");
+                    frame.getLocals().setDouble(0, frame.getOperandStack().popDouble());
+                }
+                // 72
+                case DSTORE_1 -> {
+                    logger.debug("DSTORE_1 >> ");
+                    frame.getLocals().setDouble(1, frame.getOperandStack().popDouble());
+                }
+                // 73
+                case DSTORE_2 -> {
+                    logger.debug("DSTORE_2 >> ");
+                    frame.getLocals().setDouble(2, frame.getOperandStack().popDouble());
+                }
+                // 74
+                case DSTORE_3 -> {
+                    logger.debug("DSTORE_3 >> ");
+                    frame.getLocals().setDouble(3, frame.getOperandStack().popDouble());
                 }
                 // 145, int to byte (signed, with sign extension)
                 case I2B -> {
@@ -340,6 +403,10 @@ public class BytecodeInterpreter {
                                 case 'C' -> {
                                     classList.add(char.class);
                                     objectList.add((char)frame.getOperandStack().popInt());
+                                }
+                                case 'D' -> {
+                                    classList.add(double.class);
+                                    objectList.add(frame.getOperandStack().popDouble());
                                 }
                                 case 'F' -> {
                                     classList.add(float.class);

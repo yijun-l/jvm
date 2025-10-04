@@ -57,4 +57,19 @@ public class LocalVariableArray {
         int high = this.locals[index+1].getNum();
         return ((long)low & 0xFFFFFFFFL) | ((long)high << 32);
     }
+
+    public void setDouble(int index, double num){
+        long bits = Double.doubleToLongBits(num);
+        this.locals[index].setType(ValueType.T_DOUBLE);
+        this.locals[index].setNum((int) (bits & 0xFFFFFFFFL));
+        this.locals[index+1].setType(ValueType.T_DOUBLE);
+        this.locals[index+1].setNum((int) (bits >>> 32));
+    }
+
+    public double getDouble(int index) {
+        int low = this.locals[index].getNum();
+        int high = this.locals[index+1].getNum();
+        long bits = ((long)low & 0xFFFFFFFFL) | ((long)high << 32);
+        return Double.longBitsToDouble(bits);
+    }
 }

@@ -25,6 +25,9 @@ public class HelloWorld {
         long j = 8888;
         System.out.println(j);
 
+        double d = 3.1415926;
+        System.out.println(d);
+
         System.out.println("hello, world");
     }
 

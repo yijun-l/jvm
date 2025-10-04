@@ -65,4 +65,21 @@ public class OperandStack {
         return ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
     }
 
+    public void pushDouble(double num){
+        long bits = Double.doubleToLongBits(num);
+        top++;
+        stack[top].setType(ValueType.T_DOUBLE);
+        stack[top].setNum((int) (bits & 0xFFFFFFFFL));
+        top++;
+        stack[top].setType(ValueType.T_DOUBLE);
+        stack[top].setNum((int) (bits >>> 32));
+    }
+
+    public double popDouble(){
+        int high = stack[top--].getNum();
+        int low = stack[top--].getNum();
+        long bits = ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
+        return Double.longBitsToDouble(bits);
+    }
+
 }
