@@ -11,7 +11,7 @@
         ALL < TRACE < DEBUG < INFO < WARN < ERROR < OFF
     -->
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
 

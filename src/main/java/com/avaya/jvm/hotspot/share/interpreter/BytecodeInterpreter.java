@@ -352,12 +352,84 @@ public class BytecodeInterpreter {
                     logger.debug("DSTORE_3 >> ");
                     frame.getLocals().setDouble(3, frame.getOperandStack().popDouble());
                 }
+                // 133, int to long
+                case I2L -> {
+                    logger.debug("I2L >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushLong((long)intValue);
+                }
+                // 134, int to float
+                case I2F -> {
+                    logger.debug("I2F >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushFloat((float)intValue);
+                }
+                // 135, int to double
+                case I2D -> {
+                    logger.debug("I2D >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushDouble((double)intValue);
+                }
+                // 136, long to int
+                case L2I -> {
+                    logger.debug("L2I >> ");
+                    long longValue  = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushInt((int)longValue);
+                }
+                // 137, long to float
+                case L2F -> {
+                    logger.debug("L2F >> ");
+                    long longValue  = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushFloat((float)longValue);
+                }
+                // 138, long to double
+                case L2D -> {
+                    logger.debug("L2D >> ");
+                    long longValue  = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushDouble((double)longValue);
+                }
+                // 139, float to int
+                case F2I -> {
+                    logger.debug("F2I >> ");
+                    float floatValue  = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushInt((int)floatValue);
+                }
+                // 140, float to long
+                case F2L -> {
+                    logger.debug("F2L >> ");
+                    float floatValue  = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushLong((long)floatValue);
+                }
+                // 141, float to double
+                case F2D -> {
+                    logger.debug("F2D >> ");
+                    float floatValue  = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushDouble((double)floatValue);
+                }
+                // 142, double to int
+                case D2I -> {
+                    logger.debug("D2I >> ");
+                    double doubleValue  = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushInt((int)doubleValue);
+                }
+                // 143, double to long
+                case D2L -> {
+                    logger.debug("D2L >> ");
+                    double doubleValue  = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushLong((long)doubleValue);
+                }
+                // 144, double to float
+                case D2F -> {
+                    logger.debug("D2F >> ");
+                    double doubleValue  = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushFloat((float)doubleValue);
+                }
                 // 145, int to byte (signed, with sign extension)
                 case I2B -> {
                     logger.debug("I2B >> ");
                     int intValue  = frame.getOperandStack().popInt();
                     intValue  = (intValue  << 24) >> 24;
-                    frame.getOperandStack().pushInt(intValue );
+                    frame.getOperandStack().pushInt(intValue);
                 }
                 // 146, int to char (unsigned, high 16 bits cleared)
                 case I2C -> {
