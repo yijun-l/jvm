@@ -1,11 +1,13 @@
 package com.avaya.jvm.hotspot.share.interpreter;
 
+import com.avaya.jvm.hotspot.share.classfile.BootClassLoader;
 import com.avaya.jvm.hotspot.share.oops.*;
 import com.avaya.jvm.hotspot.share.runtime.JavaThread;
 import com.avaya.jvm.hotspot.share.runtime.JavaVFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,13 +15,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callStaticMethod;
+
 
 public class BytecodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(BytecodeInterpreter.class);
 
-    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
         JavaVFrame frame = (JavaVFrame) thread.getStack().peek();
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
+        bytecodeStream.resetIndex();
         while (!bytecodeStream.end()){
             switch (Bytecodes.fromOpcode(bytecodeStream.getU1())){
                 // 2, push constant -1 onto the operand stack
@@ -95,7 +100,16 @@ public class BytecodeInterpreter {
                 // 16, push a byte constant (from next byte in bytecode) onto the operand stack
                 case BIPUSH -> {
                     logger.debug("BIPUSH >> ");
-                    frame.getOperandStack().pushInt(bytecodeStream.getU1());
+                    byte value = (byte)bytecodeStream.getU1();
+                    frame.getOperandStack().pushInt(value);
+                }
+                // 16, push a short constant (from next byte in bytecode) onto the operand stack
+                case SIPUSH -> {
+                    logger.debug("SIPUSH >> ");
+                    int high = bytecodeStream.getU1();
+                    int low = bytecodeStream.getU1();
+                    short value = (short)((high << 8) | (low & 0xFF));
+                    frame.getOperandStack().pushInt(value);
                 }
                 // 18
                 case LDC -> {
@@ -447,6 +461,37 @@ public class BytecodeInterpreter {
                         // Retrieve the Method object, and invoke it
                         Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
                         method.invoke(targetObject, objectList.toArray(new Object[0]));
+                    }
+
+                    // TODO: handle self-defined Instance Methods
+                }
+                // 184
+                case INVOKESTATIC -> {
+                    logger.debug("INVOKESTATIC >> ");
+                    ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String objectClassName = methodref.resolveClassName(constantPool);
+                    String methodName = methodref.resolveMethodName(constantPool);
+                    Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
+                    // Handle JRE library classes (java.*).
+                    if (objectClassName.startsWith("java")) {
+                        // TODO: handle Static JRE Library Methods
+                    }
+                    // Self-defined classes (com.avaya.jvm.*)
+                    else if (objectClassName.startsWith("com/avaya/jvm")){
+                        InstanceKlass klass = BootClassLoader.loadKlass(objectClassName.replace('/', '.'));
+                        MethodInfo methodInfo = null;
+                        for (int i = 0; i < klass.getMethods().size(); i++){
+                            MethodInfo method = klass.getMethods().get(i);
+                            if (method.getName().equals(methodName)){
+                                methodInfo = method;
+                                break;
+                            }
+                        }
+                        // static method without parameters
+                        if (methodDescriptor.getField() == ""){
+                            callStaticMethod(methodInfo);
+                        }
+                        // TODO: handle Static Methods with parameters
                     }
                 }
             }

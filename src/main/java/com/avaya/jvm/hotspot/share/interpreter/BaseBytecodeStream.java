@@ -52,4 +52,8 @@ public class BaseBytecodeStream extends StackObj {
     public boolean end(){
         return index >= codes.length;
     }
+
+    public void resetIndex(){
+        this.index = 0;
+    }
 }

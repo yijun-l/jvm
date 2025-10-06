@@ -8,6 +8,7 @@ import com.avaya.jvm.hotspot.share.runtime.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public class JavaNativeInterface {
@@ -24,7 +25,7 @@ public class JavaNativeInterface {
         return null;
     }
 
-    public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
         logger.debug("function {}() is called", method.getName());
 
         JavaThread thread = Threads.getCurrentThread();
