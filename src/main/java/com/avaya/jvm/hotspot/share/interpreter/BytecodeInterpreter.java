@@ -352,6 +352,185 @@ public class BytecodeInterpreter {
                     logger.debug("DSTORE_3 >> ");
                     frame.getLocals().setDouble(3, frame.getOperandStack().popDouble());
                 }
+                // 96, Add: Pop valueB, pop valueA, push (valueA + valueB)
+                case IADD -> {
+                    logger.debug("IADD >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA + valueB);
+                }
+                // 97
+                case LADD -> {
+                    logger.debug("LADD >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA + valueB);
+                }
+                // 98
+                case FADD -> {
+                    logger.debug("FADD >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushFloat(valueA + valueB);
+                }
+                // 99
+                case DADD -> {
+                    logger.debug("DADD >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushDouble(valueA + valueB);
+                }
+                // 100, Subtract: Pop valueB, pop valueA, push (valueA - valueB)
+                case ISUB -> {
+                    logger.debug("ISUB >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA - valueB);
+                }
+                // 101
+                case LSUB -> {
+                    logger.debug("LSUB >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA - valueB);
+                }
+                // 102
+                case FSUB -> {
+                    logger.debug("FSUB >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushFloat(valueA - valueB);
+                }
+                // 103
+                case DSUB -> {
+                    logger.debug("DSUB >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushDouble(valueA - valueB);
+                }
+                // 104, Multiply: Pop valueB, pop valueA, push (valueA * valueB)
+                case IMUL -> {
+                    logger.debug("IMUL >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA * valueB);
+                }
+                // 105
+                case LMUL -> {
+                    logger.debug("LMUL >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA * valueB);
+                }
+                // 106
+                case FMUL -> {
+                    logger.debug("FMUL >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushFloat(valueA * valueB);
+                }
+                // 107
+                case DMUL -> {
+                    logger.debug("DMUL >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushDouble(valueA * valueB);
+                }
+                // 108, Divide: Pop valueB, pop valueA, push (valueA / valueB)
+                case IDIV -> {
+                    logger.debug("IDIV >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueB == 0) throw new ArithmeticException("/ by zero");
+                    frame.getOperandStack().pushInt(valueA / valueB);
+                }
+                // 109
+                case LDIV -> {
+                    logger.debug("LDIV >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    if (valueB == 0) throw new ArithmeticException("/ by zero");
+                    frame.getOperandStack().pushLong(valueA / valueB);
+                }
+                // 110
+                case FDIV -> {
+                    logger.debug("FDIV >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    if (valueB == 0) throw new ArithmeticException("/ by zero");
+                    frame.getOperandStack().pushFloat(valueA / valueB);
+                }
+                // 111
+                case DDIV -> {
+                    logger.debug("DDIV >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    if (valueB == 0) throw new ArithmeticException("/ by zero");
+                    frame.getOperandStack().pushDouble(valueA / valueB);
+                }
+                // 112, Remainder: Pop valueB, pop valueA, push (valueA % valueB)
+                case IREM -> {
+                    logger.debug("IREM >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueB == 0) throw new ArithmeticException("% by zero");
+                    frame.getOperandStack().pushInt(valueA % valueB);
+                }
+                // 113
+                case LREM -> {
+                    logger.debug("LREM >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    if (valueB == 0) throw new ArithmeticException("% by zero");
+                    frame.getOperandStack().pushLong(valueA % valueB);
+                }
+                // 114
+                case FREM -> {
+                    logger.debug("FREM >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    if (valueB == 0) throw new ArithmeticException("% by zero");
+                    frame.getOperandStack().pushFloat(valueA % valueB);
+                }
+                // 115
+                case DREM -> {
+                    logger.debug("DREM >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    if (valueB == 0) throw new ArithmeticException("% by zero");
+                    frame.getOperandStack().pushDouble(valueA % valueB);
+                }
+                // 116, Negate: Pop valueA, push (-valueA)
+                case INEG -> {
+                    logger.debug("INEG >> ");
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(-valueA);
+                }
+                // 117
+                case LNEG -> {
+                    logger.debug("LNEG >> ");
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(-valueA);
+                }
+                // 118
+                case FNEG -> {
+                    logger.debug("FNEG >> ");
+                    float valueA = frame.getOperandStack().popFloat();
+                    frame.getOperandStack().pushFloat(-valueA);
+                }
+                // 119
+                case DNEG -> {
+                    logger.debug("DNEG >> ");
+                    double valueA = frame.getOperandStack().popDouble();
+                    frame.getOperandStack().pushDouble(-valueA);
+                }
+                // 132, read local index (1 byte) and signed increment (1 byte), add to variable, store back.
+                case IINC -> {
+                    logger.debug("IINC >> ");
+                    int index = bytecodeStream.getU1();
+                    int increment = (byte) bytecodeStream.getU1();
+                    frame.getLocals().setInt(index, frame.getLocals().getInt(index) + increment);
+                }
                 // 133, int to long
                 case I2L -> {
                     logger.debug("I2L >> ");

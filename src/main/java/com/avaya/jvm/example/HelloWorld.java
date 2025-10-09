@@ -30,21 +30,80 @@ public class HelloWorld {
 //
 //        System.out.println("hello, world");
 
-        int2Long();
-        int2Float();
-        int2Double();
+//        int2Long();
+//        int2Float();
+//        int2Double();
+//
+//        long2Int();
+//        long2Float();
+//        long2Double();
+//
+//        float2Int();
+//        float2Long();
+//        float2Double();
+//
+//        double2Int();
+//        double2Long();
+//        double2Float();
 
-        long2Int();
-        long2Float();
-        long2Double();
+        intCal();
+        longCal();
+        floatCal();
+        doubleCal();
+    }
 
-        float2Int();
-        float2Long();
-        float2Double();
+    // Calculation
 
-        double2Int();
-        double2Long();
-        double2Float();
+    public static void intCal(){
+        int a = 20;
+        int b = 10;
+        System.out.println(a + b);
+        System.out.println(a - b);
+        System.out.println(a * b);
+        System.out.println(a / b);
+        System.out.println(a % b);
+        System.out.println(-a);
+        System.out.println(a++);
+        System.out.println(++a);
+        System.out.println(a--);
+        System.out.println(--a);
+        System.out.println("\n");
+    }
+
+    public static void longCal(){
+        long a = 20;
+        long b = 10;
+        System.out.println(a + b);
+        System.out.println(a - b);
+        System.out.println(a * b);
+        System.out.println(a / b);
+        System.out.println(a % b);
+        System.out.println(-a);
+        System.out.println("\n");
+    }
+
+    public static void floatCal(){
+        float a = 20.0f;
+        float b = 10.0f;
+        System.out.println(a + b);
+        System.out.println(a - b);
+        System.out.println(a * b);
+        System.out.println(a / b);
+        System.out.println(a % b);
+        System.out.println(-a);
+        System.out.println("\n");
+    }
+
+    public static void doubleCal(){
+        double a = 20.0;
+        double b = 10.0;
+        System.out.println(a + b);
+        System.out.println(a - b);
+        System.out.println(a * b);
+        System.out.println(a / b);
+        System.out.println(a % b);
+        System.out.println(-a);
+        System.out.println("\n");
     }
 
     // Int casting
