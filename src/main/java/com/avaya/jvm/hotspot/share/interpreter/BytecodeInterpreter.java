@@ -524,6 +524,90 @@ public class BytecodeInterpreter {
                     double valueA = frame.getOperandStack().popDouble();
                     frame.getOperandStack().pushDouble(-valueA);
                 }
+                // 120
+                case ISHL -> {
+                    logger.debug("ISHL >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    int value = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(value << (shift & 0x1F));
+                }
+                // 121
+                case LSHL -> {
+                    logger.debug("LSHL >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    long value = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(value << (shift & 0x3F));
+                }
+                // 122
+                case ISHR -> {
+                    logger.debug("ISHR >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    int value = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(value >> (shift & 0x1F));
+                }
+                // 123
+                case LSHR -> {
+                    logger.debug("LSHR >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    long value = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(value >> (shift & 0x3F));
+                }
+                // 124
+                case IUSHR -> {
+                    logger.debug("IUSHR >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    int value = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(value >>> (shift & 0x1F));
+                }
+                // 125
+                case LUSHR -> {
+                    logger.debug("LUSHR >> ");
+                    int shift = frame.getOperandStack().popInt();
+                    long value = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(value >>> (shift & 0x3F));
+                }
+                // 126
+                case IAND -> {
+                    logger.debug("IAND >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA & valueB);
+                }
+                // 127
+                case LAND -> {
+                    logger.debug("LAND >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA & valueB);
+                }
+                // 128
+                case IOR -> {
+                    logger.debug("IOR >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA | valueB);
+                }
+                // 129
+                case LOR -> {
+                    logger.debug("LOR >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA | valueB);
+                }
+                // 130
+                case IXOR -> {
+                    logger.debug("IXOR >> ");
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt(valueA ^ valueB);
+                }
+                // 131
+                case LXOR -> {
+                    logger.debug("LXOR >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    frame.getOperandStack().pushLong(valueA ^ valueB);
+                }
                 // 132, read local index (1 byte) and signed increment (1 byte), add to variable, store back.
                 case IINC -> {
                     logger.debug("IINC >> ");
@@ -616,6 +700,12 @@ public class BytecodeInterpreter {
                     int intValue  = frame.getOperandStack().popInt();
                     intValue  = intValue  & 0xFFFF;
                     frame.getOperandStack().pushInt(intValue);
+                }
+                // 147, int to short (unsigned, high 16 bits cleared)
+                case I2S -> {
+                    logger.debug("I2S >> ");
+                    int intValue  = frame.getOperandStack().popInt();
+                    frame.getOperandStack().pushInt((short) intValue);
                 }
                 // 177
                 case RETURN -> {

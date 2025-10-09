@@ -46,13 +46,40 @@ public class HelloWorld {
 //        double2Long();
 //        double2Float();
 
-        intCal();
-        longCal();
-        floatCal();
-        doubleCal();
+//        intCal();
+//        longCal();
+//        floatCal();
+//        doubleCal();
+
+        intBit();
+        longBit();
     }
 
     // Calculation
+
+    public static void intBit(){
+        int a = 0b10101010;
+        int b = 0b11001100;
+        System.out.println(a << 3);
+        System.out.println(a >> 3);
+        System.out.println(a >>> 3);
+        System.out.println(a & b);
+        System.out.println(a | b);
+        System.out.println(a ^ b);
+        System.out.println("\n");
+    }
+
+    public static void longBit(){
+        long a = 0b10101010101010101010L;
+        long b = 0b11001100110011001100L;
+        System.out.println(a << 3);
+        System.out.println(a >> 3);
+        System.out.println(a >>> 3);
+        System.out.println(a & b);
+        System.out.println(a | b);
+        System.out.println(a ^ b);
+        System.out.println("\n");
+    }
 
     public static void intCal(){
         int a = 20;
