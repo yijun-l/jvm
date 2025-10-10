@@ -56,4 +56,10 @@ public class BaseBytecodeStream extends StackObj {
     public void resetIndex(){
         this.index = 0;
     }
+
+    // Jump for conditional bytecode instructions, adjusting offset by instruction length (3 bytes)
+    public void conditionalJump(int offset){
+        int conditionalLength = 3;
+        this.index += (offset - conditionalLength);
+    }
 }

@@ -707,6 +707,203 @@ public class BytecodeInterpreter {
                     int intValue  = frame.getOperandStack().popInt();
                     frame.getOperandStack().pushInt((short) intValue);
                 }
+                // 148, compare two long
+                case LCMP -> {
+                    logger.debug("LCMP >> ");
+                    long valueB = frame.getOperandStack().popLong();
+                    long valueA = frame.getOperandStack().popLong();
+                    int result;
+                    if (valueA > valueB) {
+                        result = 1;
+                    } else if (valueA == valueB) {
+                        result = 0;
+                    } else {
+                        result = -1;
+                    }
+                    frame.getOperandStack().pushInt(result);
+                }
+                // 149, compare two float
+                case FCMPL -> {
+                    logger.debug("FCMPL >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    int result;
+                    if (Float.isNaN(valueA) || Float.isNaN(valueB)) {
+                        result = -1;
+                    }else if (valueA > valueB) {
+                        result = 1;
+                    } else if (valueA == valueB) {
+                        result = 0;
+                    } else {
+                        result = -1;
+                    }
+                    frame.getOperandStack().pushInt(result);
+                }
+                // 150
+                case FCMPG -> {
+                    logger.debug("FCMPG >> ");
+                    float valueB = frame.getOperandStack().popFloat();
+                    float valueA = frame.getOperandStack().popFloat();
+                    int result;
+                    if (Float.isNaN(valueA) || Float.isNaN(valueB)) {
+                        result = 1;
+                    }else if (valueA > valueB) {
+                        result = 1;
+                    } else if (valueA == valueB) {
+                        result = 0;
+                    } else {
+                        result = -1;
+                    }
+                    frame.getOperandStack().pushInt(result);
+                }
+                // 151, compare two double
+                case DCMPL -> {
+                    logger.debug("DCMPL >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    int result;
+                    if (Double.isNaN(valueA) || Double.isNaN(valueB)) {
+                        result = -1;
+                    }else if (valueA > valueB) {
+                        result = 1;
+                    } else if (valueA == valueB) {
+                        result = 0;
+                    } else {
+                        result = -1;
+                    }
+                    frame.getOperandStack().pushInt(result);
+                }
+                // 152,
+                case DCMPG -> {
+                    logger.debug("DCMPG >> ");
+                    double valueB = frame.getOperandStack().popDouble();
+                    double valueA = frame.getOperandStack().popDouble();
+                    int result;
+                    if (Double.isNaN(valueA) || Double.isNaN(valueB)) {
+                        result = 1;
+                    }else if (valueA > valueB) {
+                        result = 1;
+                    } else if (valueA == valueB) {
+                        result = 0;
+                    } else {
+                        result = -1;
+                    }
+                    frame.getOperandStack().pushInt(result);
+                }
+                // 153,
+                case IFEQ -> {
+                    logger.debug("IFEQ >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value == 0){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 154,
+                case IFNE -> {
+                    logger.debug("IFNE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value != 0){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 155,
+                case IFLT -> {
+                    logger.debug("IFLT >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value == -1){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 156,
+                case IFGE -> {
+                    logger.debug("IFGE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value != -1){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 157
+                case IFGT -> {
+                    logger.debug("IFGT >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value == 1){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 158,
+                case IFLE -> {
+                    logger.debug("IFLE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int value = frame.getOperandStack().popInt();
+                    if (value != 1){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 159,
+                case IF_ICMPEQ -> {
+                    logger.debug("IF_ICMPEQ >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA == valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 160,
+                case IF_ICMPNE -> {
+                    logger.debug("IF_ICMPNE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA != valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 161,
+                case IF_ICMPLT -> {
+                    logger.debug("IF_ICMPLT >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA < valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 162,
+                case IF_ICMPGE -> {
+                    logger.debug("IF_ICMPGE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA >= valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 163,
+                case IF_ICMPGT -> {
+                    logger.debug("IF_ICMPGT >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA > valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 164,
+                case IF_ICMPLE -> {
+                    logger.debug("IF_ICMPLE >> ");
+                    int offset = bytecodeStream.getU2();
+                    int valueB = frame.getOperandStack().popInt();
+                    int valueA = frame.getOperandStack().popInt();
+                    if (valueA <= valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
                 // 177
                 case RETURN -> {
                     logger.debug("RETURN >> ");

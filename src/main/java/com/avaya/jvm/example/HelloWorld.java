@@ -51,10 +51,80 @@ public class HelloWorld {
 //        floatCal();
 //        doubleCal();
 
-        intBit();
-        longBit();
+//        intBit();
+//        longBit();
+
+        intCompare();
+        otherCompare();
     }
 
+    // Compare
+    public static void intCompare() {
+        int a = 10;
+        int b = 20;
+
+        if (a > b){
+            System.out.println("a > b");
+        } else if (a == b){
+            System.out.println("a == b");
+        } else {
+            System.out.println("a < b");
+        }
+
+        if (a != b){
+            System.out.println("a != b");
+        }
+
+        if (a >= b){
+            System.out.println("a >= b");
+        }
+
+        if (a <= b){
+            System.out.println("a <= b");
+        }
+    }
+    public static void otherCompare() {
+        long la = 100;
+        long lb = 200;
+
+        if (la > lb){
+            System.out.println("la > lb");
+        }
+
+        if (la > lb){
+            System.out.println("la > lb");
+        }
+        else if (la == lb){
+            System.out.println("la == lb");
+        } else {
+            System.out.println("la < lb");
+        }
+
+        float fa = 10.0f;
+        float fb = 20.0f;
+
+        if (fa > fb){
+            System.out.println("fa > fb");
+        }
+        else if (fa == fb){
+            System.out.println("fa == fb");
+        } else {
+            System.out.println("fa < fb");
+        }
+
+        double da = 100.0;
+        double db = 200.0;
+
+        if (da > db){
+            System.out.println("da > db");
+        }
+        else if (da == db){
+            System.out.println("da == db");
+        } else {
+            System.out.println("da < db");
+        }
+
+    }
     // Calculation
 
     public static void intBit(){
