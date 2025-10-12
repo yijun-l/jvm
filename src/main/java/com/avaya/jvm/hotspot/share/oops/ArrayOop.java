@@ -8,4 +8,8 @@ public abstract class ArrayOop extends OopDesc{
             throw new IndexOutOfBoundsException();
         }
     }
+
+    public int getLength(){
+        return length;
+    }
 }

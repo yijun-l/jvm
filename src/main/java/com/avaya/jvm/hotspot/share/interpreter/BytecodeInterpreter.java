@@ -4,6 +4,7 @@ import com.avaya.jvm.hotspot.share.classfile.BootClassLoader;
 import com.avaya.jvm.hotspot.share.oops.*;
 import com.avaya.jvm.hotspot.share.runtime.JavaThread;
 import com.avaya.jvm.hotspot.share.runtime.JavaVFrame;
+import com.avaya.jvm.hotspot.share.utilities.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -252,6 +253,19 @@ public class BytecodeInterpreter {
                     logger.debug("DLOAD_3 >> ");
                     frame.getOperandStack().pushDouble(frame.getLocals().getDouble(3));
                 }
+                // 42
+                case ALOAD_0 -> {
+                    logger.debug("ALOAD_0 >> ");
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(0));
+                }
+                // 51
+                case BALOAD -> {
+                    logger.debug("BALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    ByteArrayOop array = (ByteArrayOop)frame.getOperandStack().popRef();
+                    int value = array.get(index);
+                    frame.getOperandStack().pushInt(value);
+                }
                 // 54, store int from stack into local variable (index specified by next byte)
                 case ISTORE -> {
                     logger.debug("ISTORE >> ");
@@ -351,6 +365,24 @@ public class BytecodeInterpreter {
                 case DSTORE_3 -> {
                     logger.debug("DSTORE_3 >> ");
                     frame.getLocals().setDouble(3, frame.getOperandStack().popDouble());
+                }
+                // 75
+                case ASTORE_0 -> {
+                    logger.debug("ASTORE_0 >> ");
+                    frame.getLocals().setRef(0, frame.getOperandStack().popRef());
+                }
+                // 84
+                case BASTORE -> {
+                    logger.debug("BASTORE >> ");
+                    int value = frame.getOperandStack().popInt();
+                    int index = frame.getOperandStack().popInt();
+                    ByteArrayOop array = (ByteArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, (byte)value);
+                }
+                // 89
+                case DUP -> {
+                    logger.debug("DUP >> ");
+                    frame.getOperandStack().dup();
                 }
                 // 96, Add: Pop valueB, pop valueA, push (valueA + valueB)
                 case IADD -> {
@@ -904,6 +936,12 @@ public class BytecodeInterpreter {
                         bytecodeStream.conditionalJump(offset);
                     }
                 }
+                // 167
+                case GOTO -> {
+                    logger.debug("GOTO >> ");
+                    int offset = bytecodeStream.getU2();
+                    bytecodeStream.conditionalJump(offset);
+                }
                 // 177
                 case RETURN -> {
                     logger.debug("RETURN >> ");
@@ -1031,6 +1069,38 @@ public class BytecodeInterpreter {
                         }
                         // TODO: handle Static Methods with parameters
                     }
+                }
+                // 188
+                case NEWARRAY -> {
+                    logger.debug("NEWARRAY >> ");
+                    // Pop array length from the operand stack
+                    int length = frame.getOperandStack().popInt();
+
+                    // Read atype operand from bytecode stream and parse to ValueType
+                    ValueType type = ValueType.atype2BasicType(bytecodeStream.getU1());
+
+                    // Create the corresponding array object based on ValueType
+                    Object arrayOop;
+                    switch (type){
+                        case T_BYTE -> arrayOop = new ByteArrayOop(length);
+                        case T_CHAR -> arrayOop = new CharArrayOop(length);
+                        case T_SHORT -> arrayOop = new ShortArrayOop(length);
+                        case T_INT -> arrayOop = new IntArrayOop(length);
+                        case T_LONG -> arrayOop = new LongArrayOop(length);
+                        case T_FLOAT -> arrayOop = new FloatArrayOop(length);
+                        case T_DOUBLE -> arrayOop = new DoubleArrayOop(length);
+                        default -> throw new IllegalArgumentException("Invalid array type: " + type);
+                    }
+                    // Push the newly created array reference onto the operand stack
+                    frame.getOperandStack().pushRef(arrayOop);
+
+                }
+                // 190
+                case ARRAYLENGTH -> {
+                    logger.debug("ARRAYLENGTH >> ");
+                    ArrayOop array = (ArrayOop) frame.getOperandStack().popRef();
+                    int length = array.getLength();
+                    frame.getOperandStack().pushInt(length);
                 }
             }
         }

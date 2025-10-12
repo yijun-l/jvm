@@ -60,6 +60,8 @@ public class BaseBytecodeStream extends StackObj {
     // Jump for conditional bytecode instructions, adjusting offset by instruction length (3 bytes)
     public void conditionalJump(int offset){
         int conditionalLength = 3;
+        // fix the bug as offset should be a signed short
+        offset = (short)offset;
         this.index += (offset - conditionalLength);
     }
 }

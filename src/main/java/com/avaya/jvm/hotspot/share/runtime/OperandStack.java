@@ -20,6 +20,38 @@ public class OperandStack {
         }
     }
 
+    public void dup(){
+        ValueType type = stack[top].getType();
+        switch (type){
+            case T_OBJECT -> {
+                Object value = stack[top].getRef();
+                pushRef(value);
+            }
+            case T_INT -> {
+                int value = stack[top].getNum();
+                pushInt(value);
+            }
+            case T_FLOAT -> {
+                float value = Float.intBitsToFloat(stack[top].getNum());
+                pushFloat(value);
+            }
+            case T_LONG -> {
+                int high = stack[top].getNum();
+                int low = stack[top-1].getNum();
+                long value = ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
+                pushLong(value);
+            }
+            case T_DOUBLE -> {
+                int high = stack[top].getNum();
+                int low = stack[top-1].getNum();
+                long bits = ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
+                double value =  Double.longBitsToDouble(bits);
+                pushDouble(value);
+            }
+        }
+    }
+
+    // Reference
     public void pushRef(Object ref){
         top++;
         stack[top].setType(ValueType.T_OBJECT);
@@ -30,6 +62,7 @@ public class OperandStack {
         return stack[top--].getRef();
     }
 
+    // Int
     public void pushInt(int num){
         top++;
         stack[top].setType(ValueType.T_INT);
@@ -40,6 +73,7 @@ public class OperandStack {
         return stack[top--].getNum();
     }
 
+    // Float
     public void pushFloat(float num){
         top++;
         stack[top].setType(ValueType.T_FLOAT);
@@ -50,6 +84,7 @@ public class OperandStack {
         return Float.intBitsToFloat(stack[top--].getNum());
     }
 
+    // Long
     public void pushLong(long num){
         top++;
         stack[top].setType(ValueType.T_LONG);
@@ -65,6 +100,7 @@ public class OperandStack {
         return ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
     }
 
+    // Double
     public void pushDouble(double num){
         long bits = Double.doubleToLongBits(num);
         top++;

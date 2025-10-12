@@ -54,8 +54,18 @@ public class HelloWorld {
 //        intBit();
 //        longBit();
 
-        intCompare();
-        otherCompare();
+//        intCompare();
+//        otherCompare();
+
+        initArray();
+    }
+
+    public static void initArray(){
+        byte[] a = {1, 2, 3};
+
+        for (int i = 0; i < a.length; i++){
+            System.out.println(a[i]);
+        }
     }
 
     // Compare
