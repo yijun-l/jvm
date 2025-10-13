@@ -18,7 +18,10 @@ import java.util.List;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callStaticMethod;
 
-
+/*
+ * See details in:
+ * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html
+ */
 public class BytecodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(BytecodeInterpreter.class);
 
@@ -173,6 +176,11 @@ public class BytecodeInterpreter {
                     logger.debug("DLOAD >> ");
                     frame.getOperandStack().pushDouble(frame.getLocals().getDouble(bytecodeStream.getU1()));
                 }
+                // 25, load array from local variable (index specified by next byte) onto stack
+                case ALOAD -> {
+                    logger.debug("ALOAD >> ");
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(bytecodeStream.getU1()));
+                }
                 // 26, load int from local variable 0 onto stack
                 case ILOAD_0 -> {
                     logger.debug("ILOAD_0 >> ");
@@ -258,12 +266,76 @@ public class BytecodeInterpreter {
                     logger.debug("ALOAD_0 >> ");
                     frame.getOperandStack().pushRef(frame.getLocals().getRef(0));
                 }
+                // 43
+                case ALOAD_1 -> {
+                    logger.debug("ALOAD_1 >> ");
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(1));
+                }
+                // 44
+                case ALOAD_2 -> {
+                    logger.debug("ALOAD_2 >> ");
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(2));
+                }
+                // 45
+                case ALOAD_3 -> {
+                    logger.debug("ALOAD_3 >> ");
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(3));
+                }
+                // 46
+                case IALOAD -> {
+                    logger.debug("IALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    IntArrayOop array = (IntArrayOop)frame.getOperandStack().popRef();
+                    int value = array.get(index);
+                    frame.getOperandStack().pushInt(value);
+                }
+                // 47
+                case LALOAD -> {
+                    logger.debug("LALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    LongArrayOop array = (LongArrayOop)frame.getOperandStack().popRef();
+                    long value = array.get(index);
+                    frame.getOperandStack().pushLong(value);
+                }
+                // 48
+                case FALOAD -> {
+                    logger.debug("FALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    FloatArrayOop array = (FloatArrayOop)frame.getOperandStack().popRef();
+                    float value = array.get(index);
+                    frame.getOperandStack().pushFloat(value);
+                }
+                // 49, DALOAD
+                case DALOAD -> {
+                    logger.debug("DALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    DoubleArrayOop array = (DoubleArrayOop)frame.getOperandStack().popRef();
+                    double value = array.get(index);
+                    frame.getOperandStack().pushDouble(value);
+                }
+                // 50, AALOAD
                 // 51
                 case BALOAD -> {
                     logger.debug("BALOAD >> ");
                     int index = frame.getOperandStack().popInt();
                     ByteArrayOop array = (ByteArrayOop)frame.getOperandStack().popRef();
-                    int value = array.get(index);
+                    byte value = array.get(index);
+                    frame.getOperandStack().pushInt(value);
+                }
+                // 52
+                case CALOAD -> {
+                    logger.debug("CALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    CharArrayOop array = (CharArrayOop)frame.getOperandStack().popRef();
+                    char value = array.get(index);
+                    frame.getOperandStack().pushInt(value);
+                }
+                // 53
+                case SALOAD -> {
+                    logger.debug("SALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    ShortArrayOop array = (ShortArrayOop)frame.getOperandStack().popRef();
+                    short value = array.get(index);
                     frame.getOperandStack().pushInt(value);
                 }
                 // 54, store int from stack into local variable (index specified by next byte)
@@ -285,6 +357,11 @@ public class BytecodeInterpreter {
                 case DSTORE -> {
                     logger.debug("DSTORE >> ");
                     frame.getLocals().setDouble(bytecodeStream.getU1(), frame.getOperandStack().popDouble());
+                }
+                // 58, store array from stack into local variable (index specified by next byte)
+                case ASTORE -> {
+                    logger.debug("ASTORE >> ");
+                    frame.getLocals().setRef(bytecodeStream.getU1(), frame.getOperandStack().popRef());
                 }
                 // 59, store int from stack into local variable 0
                 case ISTORE_0 -> {
@@ -371,6 +448,53 @@ public class BytecodeInterpreter {
                     logger.debug("ASTORE_0 >> ");
                     frame.getLocals().setRef(0, frame.getOperandStack().popRef());
                 }
+                // 76
+                case ASTORE_1 -> {
+                    logger.debug("ASTORE_1 >> ");
+                    frame.getLocals().setRef(1, frame.getOperandStack().popRef());
+                }
+                // 77
+                case ASTORE_2 -> {
+                    logger.debug("ASTORE_2 >> ");
+                    frame.getLocals().setRef(2, frame.getOperandStack().popRef());
+                }
+                // 78
+                case ASTORE_3 -> {
+                    logger.debug("ASTORE_3 >> ");
+                    frame.getLocals().setRef(3, frame.getOperandStack().popRef());
+                }
+                // 79
+                case IASTORE -> {
+                    logger.debug("IASTORE >> ");
+                    int value = frame.getOperandStack().popInt();
+                    int index = frame.getOperandStack().popInt();
+                    IntArrayOop array = (IntArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, value);
+                }
+                // 80
+                case LASTORE -> {
+                    logger.debug("LASTORE >> ");
+                    long value = frame.getOperandStack().popLong();
+                    int index = frame.getOperandStack().popInt();
+                    LongArrayOop array = (LongArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, value);
+                }
+                // 81
+                case FASTORE -> {
+                    logger.debug("FASTORE >> ");
+                    float value = frame.getOperandStack().popFloat();
+                    int index = frame.getOperandStack().popInt();
+                    FloatArrayOop array = (FloatArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, value);
+                }
+                // 82
+                case DASTORE -> {
+                    logger.debug("DASTORE >> ");
+                    double value = frame.getOperandStack().popDouble();
+                    int index = frame.getOperandStack().popInt();
+                    DoubleArrayOop array = (DoubleArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, value);
+                }
                 // 84
                 case BASTORE -> {
                     logger.debug("BASTORE >> ");
@@ -378,6 +502,22 @@ public class BytecodeInterpreter {
                     int index = frame.getOperandStack().popInt();
                     ByteArrayOop array = (ByteArrayOop)frame.getOperandStack().popRef();
                     array.set(index, (byte)value);
+                }
+                // 85
+                case CASTORE -> {
+                    logger.debug("CASTORE >> ");
+                    int value = frame.getOperandStack().popInt();
+                    int index = frame.getOperandStack().popInt();
+                    CharArrayOop array = (CharArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, (char)value);
+                }
+                // 86
+                case SASTORE -> {
+                    logger.debug("SASTORE >> ");
+                    int value = frame.getOperandStack().popInt();
+                    int index = frame.getOperandStack().popInt();
+                    ShortArrayOop array = (ShortArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, (short)value);
                 }
                 // 89
                 case DUP -> {

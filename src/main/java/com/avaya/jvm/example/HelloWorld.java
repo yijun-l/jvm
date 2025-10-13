@@ -61,10 +61,40 @@ public class HelloWorld {
     }
 
     public static void initArray(){
-        byte[] a = {1, 2, 3};
+        byte[] b = {1, 2, 33, 4, -5, 6};
+        short[] s = {10, 20, -10, -50, -100};
+        int[] i = {100, 200, -200, -300, -1000};
+        long[] l = {1000, 2000, -200, -500};
+        char[] c = {'a', 'b'};
+        float[] f = {1.0f, 2.0f};
+        double[] d = {100.0, 200.0};
 
-        for (int i = 0; i < a.length; i++){
-            System.out.println(a[i]);
+        for (int index = 0; index < b.length; index++){
+            System.out.println(b[index]);
+        }
+
+        for (int index = 0; index < s.length; index++){
+            System.out.println(s[index]);
+        }
+
+        for (int index = 0; index < i.length; index++){
+            System.out.println(i[index]);
+        }
+
+        for (int index = 0; index < l.length; index++){
+            System.out.println(l[index]);
+        }
+
+        for (int index = 0; index < c.length; index++){
+            System.out.println(c[index]);
+        }
+
+        for (int index = 0; index < f.length; index++){
+            System.out.println(f[index]);
+        }
+
+        for (int index = 0; index < d.length; index++){
+            System.out.println(d[index]);
         }
     }
 
