@@ -1,6 +1,10 @@
 package com.avaya.jvm.hotspot.share.oops;
 
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * In the JVM class file format, a descriptor_index exists only in:
  * 1. CONSTANT_NameAndType_info (for name and type of field/method references)
@@ -44,4 +48,35 @@ public class Descriptor {
         return field;
     }
 
+    public List<String> parseDescriptor(){
+        String descriptorString = this.field;
+        List<String> paraTypes = new ArrayList<>();
+        for (int i = 0; i < descriptorString.length(); i++){
+            char c = descriptorString.charAt(i);
+
+            if ( c == 'L'){
+                // object, Ljava/lang/String;
+                int end = descriptorString.indexOf(';', i);
+                paraTypes.add(descriptorString.substring(i, end + 1));
+                i = end;
+            } else if (c == '['){
+                // array, [[I or [[[java/lang/String;
+                int start = i;
+                while (descriptorString.charAt(i) == '['){
+                    i++;
+                }
+                if (descriptorString.charAt(i) == 'L'){
+                    int end = descriptorString.indexOf(';', i);
+                    paraTypes.add(descriptorString.substring(start, end + 1));
+                    i = end;
+                } else {
+                    paraTypes.add(descriptorString.substring(start, i + 1));
+                }
+            } else {
+                // base type, I
+                paraTypes.add(String.valueOf(c));
+            }
+        }
+        return paraTypes;
+    }
 }

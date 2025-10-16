@@ -57,7 +57,8 @@ public class HelloWorld {
 //        intCompare();
 //        otherCompare();
 
-        initArray();
+//        initArray();
+        HelloWorld test = new HelloWorld();
     }
 
     public static void initArray(){

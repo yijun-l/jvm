@@ -21,7 +21,6 @@ public class App {
         Threads.setCurrentThread(thread);
 
         JavaNativeInterface.callStaticMethod(main);
-
     }
 
 }

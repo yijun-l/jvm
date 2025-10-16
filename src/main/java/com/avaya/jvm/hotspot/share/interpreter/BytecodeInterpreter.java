@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callInstanceMethod;
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callStaticMethod;
 
 /*
@@ -1181,6 +1183,43 @@ public class BytecodeInterpreter {
 
                     // TODO: handle self-defined Instance Methods
                 }
+                // 183
+
+                case INVOKESPECIAL -> {
+                    logger.debug("INVOKESPECIAL >> ");
+                    ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String objectClassName = methodref.resolveClassName(constantPool);
+                    String methodName = methodref.resolveMethodName(constantPool);
+                    Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
+                    if (objectClassName.startsWith("java")) {
+                        // TODO: handle Static JRE Library Methods
+                        if (objectClassName.equals("java/lang/Object")){
+                            // do nothing for the root class
+                        }
+
+                        if (methodName.equals("<init>")){
+                            // new this object with the constructor
+                            Class<?> clazz = Class.forName(objectClassName.replace('/', '.'));
+//                            Constructor<?> constructor =
+
+                        } else {
+                            // normal instanceMethod
+                        }
+                    }
+                    // Self-defined classes (com.avaya.jvm.*)
+                    else if (objectClassName.startsWith("com/avaya/jvm")){
+                        InstanceKlass klass = BootClassLoader.loadKlass(objectClassName.replace('/', '.'));
+                        MethodInfo methodInfo = null;
+                        for (int i = 0; i < klass.getMethods().size(); i++){
+                            MethodInfo method = klass.getMethods().get(i);
+                            if (method.getName().equals(methodName)){
+                                methodInfo = method;
+                                break;
+                            }
+                        }
+                        callInstanceMethod(methodInfo);
+                    }
+                }
                 // 184
                 case INVOKESTATIC -> {
                     logger.debug("INVOKESTATIC >> ");
@@ -1208,6 +1247,20 @@ public class BytecodeInterpreter {
                             callStaticMethod(methodInfo);
                         }
                         // TODO: handle Static Methods with parameters
+                    }
+                }
+                // 187
+                case NEW -> {
+                    logger.debug("NEW >> ");
+                    ConstantClassInfo classInfo = (ConstantClassInfo)constantPool.getEntries().get(bytecodeStream.getU2());
+                    String objectClassName = classInfo.resolveName(constantPool);
+                    if (objectClassName.startsWith("java")) {
+                        // JRE Library Classes
+                        // Do nothing here as we would directly use keyword "new" in constructor <init>
+                    } else {
+                        // user-defined class
+                        InstanceOop oop = new InstanceOop(objectClassName);
+                        frame.getOperandStack().pushRef(oop);
                     }
                 }
                 // 188
