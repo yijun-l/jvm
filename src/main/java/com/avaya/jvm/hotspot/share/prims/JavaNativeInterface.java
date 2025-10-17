@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
 
 public class JavaNativeInterface {
     private static Logger logger = LoggerFactory.getLogger(JavaNativeInterface.class);
@@ -40,8 +37,13 @@ public class JavaNativeInterface {
             }
         }
 
-        JavaVFrame frame = new JavaVFrame(code_attr);
-        thread.getStack().push(frame);
+        JavaVFrame newFrame = new JavaVFrame(code_attr);
+
+        if (!method.getName().equals("main")){
+            JavaVFrame oldFrame = (JavaVFrame) thread.getStack().peek();
+            transferArguments(oldFrame, newFrame, method.getDescriptor().parseDescriptor(), false);
+        }
+        thread.getStack().push(newFrame);
 
         BytecodeInterpreter.run(thread, code_attr.getCode());
     }

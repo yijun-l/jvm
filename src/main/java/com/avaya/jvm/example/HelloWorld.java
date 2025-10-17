@@ -58,7 +58,50 @@ public class HelloWorld {
 //        otherCompare();
 
 //        initArray();
-        HelloWorld test = new HelloWorld();
+//        HelloWorld test = new HelloWorld();
+
+        intRet();
+        longRet();
+        floatRet();
+        doubleRet();
+
+        printRet();
+    }
+
+    public static void printRet(){
+        int i = intRet();
+        long l = longRet();
+        float f = floatRet();
+        double d = doubleRet();
+        System.out.println(i);
+        System.out.println(l);
+        System.out.println(f);
+        System.out.println(d);
+
+    }
+
+    public static int intRet(){
+        int a = 20;
+        int b = 10;
+        return a + b;
+    }
+
+    public static long longRet(){
+        long a = 20;
+        long b = 10;
+        return a + b;
+    }
+
+    public static float floatRet(){
+        float a = 20.0f;
+        float b = 10.0f;
+        return a + b;
+    }
+
+    public static double doubleRet(){
+        double a = 20.0;
+        double b = 10.0;
+        return a + b;
     }
 
     public static void initArray(){

@@ -20,6 +20,14 @@ public class OperandStack {
         }
     }
 
+    public void pop(){
+        top--;
+    }
+
+    public void pop2(){
+        top -= 2;
+    }
+
     public void dup(){
         ValueType type = stack[top].getType();
         switch (type){

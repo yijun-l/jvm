@@ -33,6 +33,15 @@ public class BytecodeInterpreter {
         bytecodeStream.resetIndex();
         while (!bytecodeStream.end()){
             switch (Bytecodes.fromOpcode(bytecodeStream.getU1())){
+                // 0, do nothing
+                case NOP -> {
+                    logger.debug("NOP >> ");
+                }
+                // 1, push null onto the operand stack
+                case ACONST_NULL -> {
+                    logger.debug("ACONST_NULL >> ");
+                    frame.getOperandStack().pushRef(null);
+                }
                 // 2, push constant -1 onto the operand stack
                 case ICONST_M1 -> {
                     logger.debug("ICONST_M1 >> ");
@@ -520,6 +529,16 @@ public class BytecodeInterpreter {
                     int index = frame.getOperandStack().popInt();
                     ShortArrayOop array = (ShortArrayOop)frame.getOperandStack().popRef();
                     array.set(index, (short)value);
+                }
+                // 87
+                case POP -> {
+                    logger.debug("POP >> ");
+                    frame.getOperandStack().pop();
+                }
+                // 88
+                case POP2 -> {
+                    logger.debug("POP2 >> ");
+                    frame.getOperandStack().pop2();
                 }
                 // 89
                 case DUP -> {
@@ -1084,6 +1103,38 @@ public class BytecodeInterpreter {
                     int offset = bytecodeStream.getU2();
                     bytecodeStream.conditionalJump(offset);
                 }
+                // 172
+                case IRETURN -> {
+                    logger.debug("IRETURN >> ");
+                    int ret = frame.getOperandStack().popInt();
+                    thread.getStack().pop();
+                    frame = (JavaVFrame) thread.getStack().peek();
+                    frame.getOperandStack().pushInt(ret);
+                }
+                // 173
+                case LRETURN -> {
+                    logger.debug("LRETURN >> ");
+                    long ret = frame.getOperandStack().popLong();
+                    thread.getStack().pop();
+                    frame = (JavaVFrame) thread.getStack().peek();
+                    frame.getOperandStack().pushLong(ret);
+                }
+                // 174
+                case FRETURN -> {
+                    logger.debug("FRETURN >> ");
+                    float ret = frame.getOperandStack().popFloat();
+                    thread.getStack().pop();
+                    frame = (JavaVFrame) thread.getStack().peek();
+                    frame.getOperandStack().pushFloat(ret);
+                }
+                // 175
+                case DRETURN -> {
+                    logger.debug("DRETURN >> ");
+                    double ret = frame.getOperandStack().popDouble();
+                    thread.getStack().pop();
+                    frame = (JavaVFrame) thread.getStack().peek();
+                    frame.getOperandStack().pushDouble(ret);
+                }
                 // 177
                 case RETURN -> {
                     logger.debug("RETURN >> ");
@@ -1226,7 +1277,6 @@ public class BytecodeInterpreter {
                     ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
                     String objectClassName = methodref.resolveClassName(constantPool);
                     String methodName = methodref.resolveMethodName(constantPool);
-                    Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
                     // Handle JRE library classes (java.*).
                     if (objectClassName.startsWith("java")) {
                         // TODO: handle Static JRE Library Methods
@@ -1242,11 +1292,7 @@ public class BytecodeInterpreter {
                                 break;
                             }
                         }
-                        // static method without parameters
-                        if (methodDescriptor.getField() == ""){
-                            callStaticMethod(methodInfo);
-                        }
-                        // TODO: handle Static Methods with parameters
+                        callStaticMethod(methodInfo);
                     }
                 }
                 // 187
