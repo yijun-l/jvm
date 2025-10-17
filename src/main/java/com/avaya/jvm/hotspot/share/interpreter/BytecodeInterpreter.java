@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -543,7 +542,37 @@ public class BytecodeInterpreter {
                 // 89
                 case DUP -> {
                     logger.debug("DUP >> ");
-                    frame.getOperandStack().dup();
+                    frame.getOperandStack().dupSlotsAcrossElements(1, 0);
+                }
+                // 90
+                case DUP_X1 -> {
+                    logger.debug("DUP_X1 >> ");
+                    frame.getOperandStack().dupSlotsAcrossElements(1, 1);
+                }
+                // 91
+                case DUP_X2 -> {
+                    logger.debug("DUP_X2 >> ");
+                    frame.getOperandStack().dupSlotsAcrossElements(1, 2);
+                }
+                // 92
+                case DUP2 -> {
+                    logger.debug("DUP2 >> ");
+                    frame.getOperandStack().dupSlotsAcrossElements(2, 1);
+                }
+                // 93
+                case DUP2_X1 -> {
+                    logger.debug("DUP2_X1 >> ");
+                    frame.getOperandStack().dupSlotsAcrossElements(2, 1);
+                }
+                // 94
+                case DUP2_X2 -> {
+                    logger.debug("DUP2_X2 >> ");
+                    frame.getOperandStack().dupSlotsAcrossElements(2, 2);
+                }
+                // 95,
+                case SWAP -> {
+                    logger.debug("SWAP >> ");
+                    frame.getOperandStack().swap();
                 }
                 // 96, Add: Pop valueB, pop valueA, push (valueA + valueB)
                 case IADD -> {

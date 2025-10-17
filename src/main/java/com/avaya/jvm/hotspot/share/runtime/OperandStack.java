@@ -28,35 +28,64 @@ public class OperandStack {
         top -= 2;
     }
 
-    public void dup(){
-        ValueType type = stack[top].getType();
-        switch (type){
-            case T_OBJECT -> {
-                Object value = stack[top].getRef();
-                pushRef(value);
-            }
-            case T_INT -> {
-                int value = stack[top].getNum();
-                pushInt(value);
-            }
-            case T_FLOAT -> {
-                float value = Float.intBitsToFloat(stack[top].getNum());
-                pushFloat(value);
-            }
-            case T_LONG -> {
-                int high = stack[top].getNum();
-                int low = stack[top-1].getNum();
-                long value = ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
-                pushLong(value);
-            }
-            case T_DOUBLE -> {
-                int high = stack[top].getNum();
-                int low = stack[top-1].getNum();
-                long bits = ((long) high << 32) | ((long) low & 0xFFFFFFFFL);
-                double value =  Double.longBitsToDouble(bits);
-                pushDouble(value);
-            }
+    public void swap(){
+        ValueType t1 = stack[top].getType();
+        ValueType t2 = stack[top - 1].getType();
+        if (t1 == ValueType.T_LONG || t1 == ValueType.T_DOUBLE || t2 == ValueType.T_LONG || t2 == ValueType.T_DOUBLE) {
+            throw new IllegalStateException("swap not allowed for long/double");
         }
+        StackValue tmp = new StackValue();
+        // store top slot
+        tmp.setType(stack[top].getType());
+        tmp.setRef(stack[top].getRef());
+        tmp.setNum(stack[top].getNum());
+
+        // copy top-1 slot to top slot
+        stack[top].setType(stack[top - 1].getType());
+        stack[top].setRef(stack[top - 1].getRef());
+        stack[top].setNum(stack[top - 1].getNum());
+
+        // copy tmp slot to top-1 slot
+        stack[top - 1].setType(tmp.getType());
+        stack[top - 1].setRef(tmp.getRef());
+        stack[top - 1].setNum(tmp.getNum());
+    }
+
+    /**
+     * General implementation of JVM DUP/X instructions.
+     *
+     * @param numSlots    Number of operand stack slots to duplicate (1 for DUP, 2 for DUP2)
+     * @param numElements Number of stack elements to skip down (_X1 = 1, _X2 = 2)
+     */
+    public void dupSlotsAcrossElements (int numSlots, int numElements){
+        // Calculate the gap in slots to insert duplicated elements
+        int insertSlots = 0;
+        for (int i = 0; i < numElements; i++){
+            insertSlots += getElementLength(top - numSlots - insertSlots);
+        }
+
+        // Move elements above the insertion point up to make room
+        for (int i = 0; i < insertSlots + numSlots; i++ ){
+            stack[top - i + numSlots].setType(stack[top - i].getType());
+            stack[top - i + numSlots].setRef(stack[top - i].getRef());
+            stack[top - i + numSlots].setNum(stack[top - i].getNum());
+        }
+        top += numSlots;
+
+        // Copy the duplicated slots into the gap
+        for (int i = 0; i < numSlots; i++ ){
+            stack[top - i - insertSlots - numSlots].setType(stack[top - i ].getType());
+            stack[top - i - insertSlots - numSlots].setRef(stack[top - i].getRef());
+            stack[top - i - insertSlots - numSlots].setNum(stack[top - i].getNum());
+        }
+    }
+
+    /**
+     * Return number of slots occupied by the stack element at index.
+     */
+    private int getElementLength(int index){
+        ValueType type = stack[index].getType();
+        return (type == ValueType.T_LONG || type == ValueType.T_DOUBLE) ? 2 : 1;
     }
 
     // Reference

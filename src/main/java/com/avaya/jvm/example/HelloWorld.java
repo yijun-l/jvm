@@ -60,13 +60,15 @@ public class HelloWorld {
 //        initArray();
 //        HelloWorld test = new HelloWorld();
 
-        intRet();
-        longRet();
-        floatRet();
-        doubleRet();
-
-        printRet();
+//        intRet();
+//        longRet();
+//        floatRet();
+//        doubleRet();
+//
+//        printRet();
     }
+
+    // TODO: want to test DUP/SWAP instruction, but not sure how to generate it with Java code
 
     public static void printRet(){
         int i = intRet();
