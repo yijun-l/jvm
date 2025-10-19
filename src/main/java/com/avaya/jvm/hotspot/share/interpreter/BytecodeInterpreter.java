@@ -148,6 +148,29 @@ public class BytecodeInterpreter {
                         }
                     }
                 }
+                // 19, load 1-slot type from constant pool (index specified by next 2 bytes) onto stack
+                case LDC_W -> {
+                    logger.debug("LDC2_W >> ");
+                    ConstantInfo constantEntry = constantPool.getEntries().get(bytecodeStream.getU2());
+                    switch (constantEntry.getTag()){
+                        case JVM_CONSTANT_INTEGER -> {
+                            int iValue = ((ConstantIntegerInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushInt(iValue);
+                        }
+                        case JVM_CONSTANT_FLOAT -> {
+                            float fValue = ((ConstantFloatInfo)constantEntry).getValue();
+                            frame.getOperandStack().pushFloat(fValue);
+                        }
+                        case JVM_CONSTANT_STRING -> {
+                            String sValue = ((ConstantStringInfo)constantEntry).resolveString(constantPool);
+                            frame.getOperandStack().pushRef(sValue);
+                        }
+                        default -> {
+                            //TODO: other types for LDC_W
+                            logger.debug("Other type in LDC_W.");
+                        }
+                    }
+                }
                 // 20, load long or double from constant pool (index specified by next 2 bytes) onto stack
                 case LDC2_W -> {
                     logger.debug("LDC2_W >> ");
@@ -324,6 +347,13 @@ public class BytecodeInterpreter {
                     frame.getOperandStack().pushDouble(value);
                 }
                 // 50, AALOAD
+                case AALOAD -> {
+                    logger.debug("AALOAD >> ");
+                    int index = frame.getOperandStack().popInt();
+                    ObjectArrayOop array = (ObjectArrayOop)frame.getOperandStack().popRef();
+                    InstanceOop value = array.get(index);
+                    frame.getOperandStack().pushRef(value);
+                }
                 // 51
                 case BALOAD -> {
                     logger.debug("BALOAD >> ");
@@ -503,6 +533,14 @@ public class BytecodeInterpreter {
                     double value = frame.getOperandStack().popDouble();
                     int index = frame.getOperandStack().popInt();
                     DoubleArrayOop array = (DoubleArrayOop)frame.getOperandStack().popRef();
+                    array.set(index, value);
+                }
+                // 83
+                case AASTORE -> {
+                    logger.debug("AASTORE >> ");
+                    InstanceOop value = (InstanceOop)frame.getOperandStack().popRef();
+                    int index = frame.getOperandStack().popInt();
+                    ObjectArrayOop array = (ObjectArrayOop)frame.getOperandStack().popRef();
                     array.set(index, value);
                 }
                 // 84
@@ -1126,11 +1164,41 @@ public class BytecodeInterpreter {
                         bytecodeStream.conditionalJump(offset);
                     }
                 }
+                // 165,
+                case IF_ACMPEQ -> {
+                    logger.debug("IF_ACMPEQ >> ");
+                    int offset = bytecodeStream.getU2();
+                    InstanceOop valueB = (InstanceOop)frame.getOperandStack().popRef();
+                    InstanceOop valueA = (InstanceOop)frame.getOperandStack().popRef();
+                    if (valueA == valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 166,
+                case IF_ACMPNE -> {
+                    logger.debug("IF_ACMPNE >> ");
+                    int offset = bytecodeStream.getU2();
+                    InstanceOop valueB = (InstanceOop)frame.getOperandStack().popRef();
+                    InstanceOop valueA = (InstanceOop)frame.getOperandStack().popRef();
+                    if (valueA != valueB){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
                 // 167
                 case GOTO -> {
                     logger.debug("GOTO >> ");
                     int offset = bytecodeStream.getU2();
                     bytecodeStream.conditionalJump(offset);
+                }
+                // 167
+                case JSR -> {
+                    logger.debug("JSR >> ");
+                    // officially deprecated in the JVM specification.
+                }
+                // 167
+                case RET -> {
+                    logger.debug("RET >> ");
+                    // officially deprecated in the JVM specification.
                 }
                 // 172
                 case IRETURN -> {
@@ -1163,6 +1231,14 @@ public class BytecodeInterpreter {
                     thread.getStack().pop();
                     frame = (JavaVFrame) thread.getStack().peek();
                     frame.getOperandStack().pushDouble(ret);
+                }
+                // 176
+                case ARETURN -> {
+                    logger.debug("ARETURN >> ");
+                    Object ret = frame.getOperandStack().popRef();
+                    thread.getStack().pop();
+                    frame = (JavaVFrame) thread.getStack().peek();
+                    frame.getOperandStack().pushRef(ret);
                 }
                 // 177
                 case RETURN -> {
@@ -1369,6 +1445,24 @@ public class BytecodeInterpreter {
                     ArrayOop array = (ArrayOop) frame.getOperandStack().popRef();
                     int length = array.getLength();
                     frame.getOperandStack().pushInt(length);
+                }
+                // 198,
+                case IFNULL -> {
+                    logger.debug("IFNULL >> ");
+                    int offset = bytecodeStream.getU2();
+                    InstanceOop value = (InstanceOop)frame.getOperandStack().popRef();
+                    if (value == null){
+                        bytecodeStream.conditionalJump(offset);
+                    }
+                }
+                // 199,
+                case IFNONNULL -> {
+                    logger.debug("IFNONNULL >> ");
+                    int offset = bytecodeStream.getU2();
+                    InstanceOop value = (InstanceOop)frame.getOperandStack().popRef();
+                    if (value != null){
+                        bytecodeStream.conditionalJump(offset);
+                    }
                 }
             }
         }
