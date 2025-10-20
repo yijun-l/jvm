@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class JavaNativeInterface {
@@ -48,7 +51,71 @@ public class JavaNativeInterface {
         BytecodeInterpreter.run(thread, code_attr.getCode());
     }
 
+    public static void callJavaNativeMethod(ConstantMethodrefInfo methodref, ConstantPool constantPool) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        String methodName = methodref.resolveMethodName(constantPool);
+        Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
+        logger.debug("jre native method {}() is called", methodName);
 
+        // Store parameter values and classes
+        List<Object> objectList = new ArrayList<>();
+        List<Class<?>> classList = new ArrayList<>();
+
+        JavaThread thread = Threads.getCurrentThread();
+        JavaVFrame frame  = (JavaVFrame) thread.getStack().peek();
+
+        transferJavaArguments(frame,objectList, classList, methodDescriptor.parseDescriptor());
+
+        // Pop the object reference owning this method
+        Object targetObject = frame.getOperandStack().popRef();
+        // Retrieve the Method object, and invoke it
+        Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
+        method.invoke(targetObject, objectList.toArray(new Object[0]));
+
+    }
+
+    public static void callPolyInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        logger.debug("instance polymorphism method {}() is called", method.getName());
+        JavaThread thread = Threads.getCurrentThread();
+        CodeAttribute code_attr = null;
+
+        for (AttributeInfo attr : method.getAttributes()) {
+            if (attr instanceof CodeAttribute code) {
+                code_attr = code;
+                break;
+            }
+        }
+        JavaVFrame oldFrame = (JavaVFrame) thread.getStack().peek();
+        JavaVFrame tmpFrame = new JavaVFrame(code_attr);
+        transferArguments(oldFrame, tmpFrame, method.getDescriptor().parseDescriptor(), true);
+
+        // polymorphism
+        InstanceOop oop = (InstanceOop) tmpFrame.getLocals().getRef(0);
+
+        // Obtain MethodInfo
+        InstanceKlass oopKlass = oop.getKlass();
+
+        MethodInfo methodInfo = method;
+        for (int i = 0; i < oopKlass.getMethods().size(); i++) {
+            MethodInfo poly_method = oopKlass.getMethods().get(i);
+            if (poly_method.getName().equals(method.getName())) {
+                methodInfo = poly_method;
+                break;
+            }
+        }
+
+        for (AttributeInfo attr : methodInfo.getAttributes()) {
+            if (attr instanceof CodeAttribute code) {
+                code_attr = code;
+                break;
+            }
+        }
+
+        JavaVFrame newFrame = new JavaVFrame(code_attr);
+        newFrame.setLocals(tmpFrame.getLocals());
+
+        thread.getStack().push(newFrame);
+        BytecodeInterpreter.run(thread, code_attr.getCode());
+    }
 
     public static void callInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         logger.debug("instance method {}() is called", method.getName());
@@ -158,5 +225,52 @@ public class JavaNativeInterface {
                 }
             }
         }
+    }
+
+    public static void transferJavaArguments(JavaVFrame frame, List<Object> objectList, List<Class<?>> classList, List<String> argSeq) throws ClassNotFoundException {
+        for (int i = argSeq.size(); i > 0; i--) {
+            switch (argSeq.get(i - 1).charAt(0)) {
+                case 'B' -> {
+                    classList.add(byte.class);
+                    objectList.add((byte) frame.getOperandStack().popInt());
+                }
+                case 'C' -> {
+                    classList.add(char.class);
+                    objectList.add((char) frame.getOperandStack().popInt());
+                }
+                case 'D' -> {
+                    classList.add(double.class);
+                    objectList.add(frame.getOperandStack().popDouble());
+                }
+                case 'F' -> {
+                    classList.add(float.class);
+                    objectList.add(frame.getOperandStack().popFloat());
+                }
+                case 'I' -> {
+                    classList.add(int.class);
+                    objectList.add(frame.getOperandStack().popInt());
+                }
+                case 'J' -> {
+                    classList.add(long.class);
+                    objectList.add(frame.getOperandStack().popLong());
+                }
+                case 'S' -> {
+                    classList.add(short.class);
+                    objectList.add((short) frame.getOperandStack().popInt());
+                }
+                case 'Z' -> {
+                    classList.add(boolean.class);
+                    objectList.add(frame.getOperandStack().popInt() != 0);
+                }
+                case 'L', '[' -> {
+                    String rawString = argSeq.get(i - 1);
+                    String className = rawString.substring(1, rawString.length() - 1).replace('/', '.');
+                    classList.add(Class.forName(className));
+                    objectList.add(frame.getOperandStack().popRef());
+                }
+            }
+        }
+        Collections.reverse(classList);
+        Collections.reverse(objectList);
     }
 }

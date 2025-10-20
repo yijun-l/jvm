@@ -11,13 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
-import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callInstanceMethod;
-import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.callStaticMethod;
+import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
 
 /*
  * See details in:
@@ -1299,87 +1294,28 @@ public class BytecodeInterpreter {
                 // 182
                 case INVOKEVIRTUAL -> {
                     logger.debug("INVOKEVIRTUAL >> ");
-                    ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    ConstantMethodrefInfo methodref = (ConstantMethodrefInfo) (constantPool.getEntries().get(bytecodeStream.getU2()));
                     String objectClassName = methodref.resolveClassName(constantPool);
                     String methodName = methodref.resolveMethodName(constantPool);
                     Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
 
-                     // Handle JRE library classes (java.*).
-                    if (objectClassName.startsWith("java")){
-                        // Store parameter values and classes
-                        List<Object> objectList = new ArrayList<>();
-                        List<Class<?>> classList = new ArrayList<>();
-
-                        // Get the descriptor of method parameters
-                        String parameters = methodDescriptor.getField();
-                        /**
-                         * JVM operand stack push order for a method call:
-                         * object reference > arg1 > arg2 > ... > argN
-                         *
-                         * When popping from the stack, the order is:
-                         * argN > ... > arg2 > arg1 > object reference
-                         *
-                         * So we parse the descriptor in reverse and pop parameters accordingly.
-                         */
-                        for(int i = parameters.length() - 1 ; i >= 0; i-- ){
-                            switch (parameters.charAt(i)){
-                                case 'B' -> {
-                                    classList.add(byte.class);
-                                    objectList.add((byte)frame.getOperandStack().popInt());
-                                }
-                                case 'C' -> {
-                                    classList.add(char.class);
-                                    objectList.add((char)frame.getOperandStack().popInt());
-                                }
-                                case 'D' -> {
-                                    classList.add(double.class);
-                                    objectList.add(frame.getOperandStack().popDouble());
-                                }
-                                case 'F' -> {
-                                    classList.add(float.class);
-                                    objectList.add(frame.getOperandStack().popFloat());
-                                }
-                                case 'I' -> {
-                                    classList.add(int.class);
-                                    objectList.add(frame.getOperandStack().popInt());
-                                }
-                                case 'J' -> {
-                                    classList.add(long.class);
-                                    objectList.add(frame.getOperandStack().popLong());
-                                }
-                                case 'S' -> {
-                                    classList.add(short.class);
-                                    objectList.add((short)frame.getOperandStack().popInt());
-                                }
-                                case 'Z' -> {
-                                    classList.add(boolean.class);
-                                    objectList.add(frame.getOperandStack().popInt() != 0);
-                                }
-                                case ';' -> {
-                                    int start = parameters.lastIndexOf('L', i);
-                                    String className = parameters.substring(start + 1, i).replace('/', '.');
-                                    classList.add(Class.forName(className));
-                                    Object tmp = frame.getOperandStack().popRef();
-                                    objectList.add(tmp);
-                                    i = start;
-                                }
+                    // Handle JRE library classes (java.*).
+                    if (objectClassName.startsWith("java")) {
+                        callJavaNativeMethod(methodref, constantPool);
+                    } else if (objectClassName.startsWith("com/avaya/jvm")) {
+                        InstanceKlass klass = BootClassLoader.loadKlass(objectClassName.replace('/', '.'));
+                        MethodInfo methodInfo = null;
+                        for (int i = 0; i < klass.getMethods().size(); i++) {
+                            MethodInfo method = klass.getMethods().get(i);
+                            if (method.getName().equals(methodName)) {
+                                methodInfo = method;
+                                break;
                             }
                         }
-                        // Reverse lists to match Java method call order: arg1, arg2, ..., argN
-                        Collections.reverse(classList);
-                        Collections.reverse(objectList);
-
-                        // Pop the object reference owning this method
-                        Object targetObject = frame.getOperandStack().popRef();
-                        // Retrieve the Method object, and invoke it
-                        Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
-                        method.invoke(targetObject, objectList.toArray(new Object[0]));
+                        callPolyInstanceMethod(methodInfo);
                     }
-
-                    // TODO: handle self-defined Instance Methods
                 }
                 // 183
-
                 case INVOKESPECIAL -> {
                     logger.debug("INVOKESPECIAL >> ");
                     ConstantMethodrefInfo methodref = (ConstantMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
@@ -1390,15 +1326,9 @@ public class BytecodeInterpreter {
                         // TODO: handle Static JRE Library Methods
                         if (objectClassName.equals("java/lang/Object")){
                             // do nothing for the root class
-                        }
-
-                        if (methodName.equals("<init>")){
-                            // new this object with the constructor
-                            Class<?> clazz = Class.forName(objectClassName.replace('/', '.'));
-//                            Constructor<?> constructor =
-
                         } else {
                             // normal instanceMethod
+                            callJavaNativeMethod(methodref, constantPool);
                         }
                     }
                     // Self-defined classes (com.avaya.jvm.*)

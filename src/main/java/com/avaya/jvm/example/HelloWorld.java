@@ -1,5 +1,22 @@
 package com.avaya.jvm.example;
 
+class Base {
+    public void hello() {
+        System.out.println("Base::hello");
+    }
+
+    public final void nonvirtual() {
+        System.out.println("Base::nonvirtual");
+    }
+}
+
+class Derived extends Base {
+    @Override
+    public void hello() {
+        System.out.println("Derived::hello");
+    }
+}
+
 public class HelloWorld {
 
     public static void main(String[] args) {
@@ -67,7 +84,11 @@ public class HelloWorld {
 //
 //        printRet();
 
-        switchCase();
+//        switchCase();
+
+        Base p = new Derived();
+        p.hello();
+        p.nonvirtual();
     }
 
     public static void switchCase() {

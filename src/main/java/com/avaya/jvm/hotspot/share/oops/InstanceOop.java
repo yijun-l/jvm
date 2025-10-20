@@ -2,11 +2,13 @@ package com.avaya.jvm.hotspot.share.oops;
 
 import com.avaya.jvm.hotspot.share.classfile.BootClassLoader;
 import com.avaya.jvm.hotspot.share.utilities.ValueType;
+import lombok.Data;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
 public class InstanceOop extends OopDesc{
     // Long and Double will consume 2 FieldSlot, other types consume 1 FieldSlot
     private List<FieldSlot> fields;
@@ -53,5 +55,9 @@ public class InstanceOop extends OopDesc{
             case '[' -> type = ValueType.T_ARRAY;
         }
         return type;
+    }
+
+    public InstanceKlass getKlass(){
+        return (InstanceKlass) this.klazz;
     }
 }
