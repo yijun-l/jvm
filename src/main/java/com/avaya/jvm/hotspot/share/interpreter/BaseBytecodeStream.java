@@ -64,4 +64,9 @@ public class BaseBytecodeStream extends StackObj {
         offset = (short)offset;
         this.index += (offset - conditionalLength);
     }
+
+    public void unconditionalJump(int offset){
+        int bytecodeLength = 1;
+        this.index += (offset - 1);
+    }
 }

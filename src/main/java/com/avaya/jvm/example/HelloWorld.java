@@ -66,6 +66,51 @@ public class HelloWorld {
 //        doubleRet();
 //
 //        printRet();
+
+        switchCase();
+    }
+
+    public static void switchCase() {
+        int i = 5;
+        switch (i) {
+            case 1:
+            case 2:
+            case 3:
+                System.out.println(i);
+                break;
+            case 4:
+            case 5:
+                System.out.println(i + 10);
+                break;
+            default:
+                System.out.println(0);
+        }
+
+        int j = 1000;
+        switch (j) {
+            case 1000:
+                System.out.println(j);
+                break;
+            case 1500:
+                System.out.println(j + 500);
+                break;
+            case 2000:
+                System.out.println(j + 1000);
+                break;
+            default:
+                System.out.println(0);
+        }
+
+        int k = 7;
+        switch (k) {
+            case 5:
+            case 7:
+            case 9:
+                System.out.println(k);
+                break;
+            default:
+                System.out.println(-1);
+        }
     }
 
     // TODO: want to test DUP/SWAP instruction, but not sure how to generate it with Java code

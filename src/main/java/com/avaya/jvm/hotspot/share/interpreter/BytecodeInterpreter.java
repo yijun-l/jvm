@@ -1200,6 +1200,45 @@ public class BytecodeInterpreter {
                     logger.debug("RET >> ");
                     // officially deprecated in the JVM specification.
                 }
+                // 170
+                case TABLESWITCH -> {
+                    logger.debug("TABLESWITCH >> ");
+                    int currentIndex = bytecodeStream.index;
+                    int condition = frame.getOperandStack().popInt();
+                    // Padding 0 - 3
+                    bytecodeStream.index += (4 - bytecodeStream.index % 4) % 4;
+                    int offset = bytecodeStream.getU4();
+                    int low = bytecodeStream.getU4();
+                    int high = bytecodeStream.getU4();
+                    for (int i = low; i <= high; i++){
+                        if (condition == i){
+                            offset = bytecodeStream.getU4();
+                        } else{
+                            bytecodeStream.getU4();
+                        }
+                    }
+                    bytecodeStream.index = currentIndex;
+                    bytecodeStream.unconditionalJump(offset);
+                }
+                // 171
+                case LOOKUPSWITCH -> {
+                    logger.debug("LOOKUPSWITCH >> ");
+                    int currentIndex = bytecodeStream.index;
+                    int condition = frame.getOperandStack().popInt();
+                    // Padding 0 - 3
+                    bytecodeStream.index += (4 - bytecodeStream.index % 4) % 4;
+                    int offset = bytecodeStream.getU4();
+                    int npairs = bytecodeStream.getU4();
+                    for (int i = 0; i < npairs; i++){
+                        if (condition ==  bytecodeStream.getU4()){
+                            offset = bytecodeStream.getU4();
+                        } else {
+                            bytecodeStream.getU4();
+                        }
+                    }
+                    bytecodeStream.index = currentIndex;
+                    bytecodeStream.unconditionalJump(offset);
+                }
                 // 172
                 case IRETURN -> {
                     logger.debug("IRETURN >> ");
@@ -1463,6 +1502,19 @@ public class BytecodeInterpreter {
                     if (value != null){
                         bytecodeStream.conditionalJump(offset);
                     }
+                }
+                // 200
+                case GOTO_W -> {
+                    logger.debug("GOTO_W >> ");
+                    int currentIndex = bytecodeStream.getIndex();
+                    int offset = bytecodeStream.getU4();
+                    bytecodeStream.index = currentIndex;
+                    bytecodeStream.unconditionalJump(offset);
+                }
+                // 201
+                case JSR_W -> {
+                    logger.debug("JSR_W >> ");
+                    // officially deprecated in the JVM specification.
                 }
             }
         }
