@@ -1,6 +1,8 @@
 package com.avaya.jvm.example;
 
 class Base {
+    public int x = 1;
+
     public void hello() {
         System.out.println("Base::hello");
     }
@@ -11,6 +13,8 @@ class Base {
 }
 
 class Derived extends Base {
+    public static int y = 0;
+
     @Override
     public void hello() {
         System.out.println("Derived::hello");
@@ -86,9 +90,17 @@ public class HelloWorld {
 
 //        switchCase();
 
-        Base p = new Derived();
-        p.hello();
-        p.nonvirtual();
+//        Derived.y = 10;
+//        int a = Derived.y;
+//        System.out.println(a);
+//
+//        Base p = new Derived();
+//        p.hello();
+//        p.nonvirtual();
+//
+//        System.out.println(p.x);
+//        p.x = 5;
+//        System.out.println(p.x);
     }
 
     public static void switchCase() {

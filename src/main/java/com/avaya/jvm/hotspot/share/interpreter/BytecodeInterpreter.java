@@ -1286,10 +1286,15 @@ public class BytecodeInterpreter {
                     ConstantFieldrefInfo fieldref = (ConstantFieldrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
                     String className = fieldref.resolveClassName(constantPool).replace('/', '.');
                     String fieldName = fieldref.resolveFieldName(constantPool);
-                    Class<?> clazz = Class.forName(className);
-                    Field clazzField = clazz.getField(fieldName);
-                    Object fieldObject = clazzField.get(null);
-                    frame.getOperandStack().pushRef(fieldObject);
+                    if (className.startsWith("java")){
+                        Class<?> clazz = Class.forName(className);
+                        Field clazzField = clazz.getField(fieldName);
+                        Object fieldObject = clazzField.get(null);
+                        frame.getOperandStack().pushRef(fieldObject);
+                    } else if (className.startsWith("com.avaya.jvm")) {
+
+                    }
+
                 }
                 // 182
                 case INVOKEVIRTUAL -> {

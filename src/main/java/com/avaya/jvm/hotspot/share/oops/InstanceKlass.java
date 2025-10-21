@@ -24,6 +24,7 @@ public class InstanceKlass extends Klass{
 
     private int fieldsCount;
     private List<FieldInfo> fields;
+    private FieldArray staticFields;
 
     private int methodsCount;
     private List<MethodInfo> methods;

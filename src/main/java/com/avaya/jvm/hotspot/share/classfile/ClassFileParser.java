@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.avaya.jvm.hotspot.share.utilities.ClassAccessFlags;
+import com.avaya.jvm.hotspot.share.utilities.FieldAccessFlags;
+import com.avaya.jvm.hotspot.share.utilities.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,7 +102,7 @@ public class ClassFileParser {
         klass.setFieldsCount(fieldsCount);
         // field_info fields[fields_count];
         List<FieldInfo> fields = new ArrayList<>();
-        parseFieldInfo(fieldsCount, fields, dis, klass.getConstantPool());
+        parseFieldInfo(fieldsCount, fields, dis, klass);
         klass.setFields(fields);
         logger.debug("├── fields count: {}", klass.getFieldsCount());
 
@@ -127,7 +129,8 @@ public class ClassFileParser {
         return klass;
     }
 
-    private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis, ConstantPool cp) throws IOException {
+    private static void parseFieldInfo(int fieldsCount, List<FieldInfo> fields, DataInputStream dis, InstanceKlass klass) throws IOException {
+        ConstantPool cp = klass.getConstantPool();
         for (int i = 0; i < fieldsCount; i++){
             FieldInfo fieldInfoEntry = new FieldInfo();
             fieldInfoEntry.setAccessFlags(dis.readUnsignedShort());
@@ -140,6 +143,7 @@ public class ClassFileParser {
             fieldInfoEntry.setAttributes(attributes);
             fields.add(fieldInfoEntry);
         }
+        klass.setStaticFields(new FieldArray(klass, true));
     }
 
     private static void parseMethodInfo(int methodsCount, List<MethodInfo> methods, DataInputStream dis, ConstantPool cp, InstanceKlass klass) throws IOException {
