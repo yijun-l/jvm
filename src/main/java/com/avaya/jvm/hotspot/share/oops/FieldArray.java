@@ -2,6 +2,7 @@ package com.avaya.jvm.hotspot.share.oops;
 
 import com.avaya.jvm.hotspot.share.runtime.OperandStack;
 import com.avaya.jvm.hotspot.share.utilities.FieldAccessFlags;
+import com.avaya.jvm.hotspot.share.utilities.TmpValue;
 import com.avaya.jvm.hotspot.share.utilities.ValueType;
 import lombok.Data;
 
@@ -21,7 +22,7 @@ public class FieldArray {
         int index = 0;
 
         if (fieldList == null){
-            fieldArray = null;
+//            fieldArray = null;
             return;
         }
 
@@ -59,8 +60,7 @@ public class FieldArray {
     }
 
     // from fields to operand stack
-    void getValue(FieldInfo field, OperandStack stack, InstanceKlass klass){
-        String name = field.resolveName(klass.getConstantPool());
+    public void getValue(String name, OperandStack stack){
         for (int i = 0; i < fieldArray.size(); i++){
             FieldSlot entry = fieldArray.get(i);
             if (entry.getName().equals(name)){
@@ -85,8 +85,7 @@ public class FieldArray {
     }
 
     // from operand stack to fields
-    void setValue(FieldInfo field, OperandStack stack, InstanceKlass klass){
-        String name = field.resolveName(klass.getConstantPool());
+    public void setValue(String name, ValueType type, OperandStack stack){
         boolean notFound = true;
         for (int i = 0; i < fieldArray.size(); i++){
             FieldSlot entry = fieldArray.get(i);
@@ -114,7 +113,6 @@ public class FieldArray {
         }
         // add a new field to the Oop
         if (notFound){
-            ValueType type = resolveDescriptor(field.resolveDescriptorName(klass.getConstantPool()));
             FieldSlot entry = new FieldSlot(name, type);
             fieldArray.add(entry);
             switch (type){
@@ -141,5 +139,26 @@ public class FieldArray {
             }
 
         }
+    }
+
+    public static void oopSetValue(String name, ValueType type, OperandStack stack){
+        TmpValue tmp = new TmpValue();
+        switch (type){
+            case T_BOOLEAN, T_BYTE, T_CHAR, T_SHORT, T_INT -> tmp.setI(stack.popInt());
+            case T_LONG -> tmp.setJ(stack.popLong());
+            case T_FLOAT -> tmp.setF(stack.popFloat());
+            case T_DOUBLE -> tmp.setD(stack.popDouble());
+            case T_OBJECT, T_ARRAY -> tmp.setL(stack.popRef());
+        }
+        InstanceOop oop = (InstanceOop) stack.popRef();
+        switch (type){
+            case T_BOOLEAN, T_BYTE, T_CHAR, T_SHORT, T_INT -> stack.pushInt(tmp.getI());
+            case T_LONG -> stack.pushLong(tmp.getJ());
+            case T_FLOAT -> stack.pushFloat(tmp.getF());
+            case T_DOUBLE -> stack.pushDouble(tmp.getD());
+            case T_OBJECT, T_ARRAY -> stack.pushRef(tmp.getL());
+        }
+
+        oop.getOopFields().setValue(name, type, stack);
     }
 }

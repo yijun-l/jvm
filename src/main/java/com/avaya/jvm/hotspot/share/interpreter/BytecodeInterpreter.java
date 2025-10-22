@@ -1292,9 +1292,50 @@ public class BytecodeInterpreter {
                         Object fieldObject = clazzField.get(null);
                         frame.getOperandStack().pushRef(fieldObject);
                     } else if (className.startsWith("com.avaya.jvm")) {
-
+                        InstanceKlass klass = BootClassLoader.loadKlass(className);
+                        klass.getStaticFields().getValue(fieldName, frame.getOperandStack());
                     }
 
+                }
+                // 179
+                case PUTSTATIC -> {
+                    logger.debug("PUTSTATIC >> ");
+                    ConstantFieldrefInfo fieldref = (ConstantFieldrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String className = fieldref.resolveClassName(constantPool).replace('/', '.');
+                    String fieldName = fieldref.resolveFieldName(constantPool);
+                    ValueType fieldType = fieldref.resolveFieldType(constantPool);
+                    if (className.startsWith("java")){
+                        // TODO: implement it later
+                    } else if (className.startsWith("com.avaya.jvm")) {
+                        InstanceKlass klass = BootClassLoader.loadKlass(className);
+                        klass.getStaticFields().setValue(fieldName, fieldType, frame.getOperandStack());
+                    }
+                }
+                // 180
+                case GETFIELD -> {
+                    logger.debug("GETFIELD >> ");
+                    ConstantFieldrefInfo fieldref = (ConstantFieldrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String className = fieldref.resolveClassName(constantPool).replace('/', '.');
+                    String fieldName = fieldref.resolveFieldName(constantPool);
+                    InstanceOop oop = (InstanceOop)frame.getOperandStack().popRef();
+                    if (className.startsWith("java")){
+                        // TODO: implement it later
+                    } else if (className.startsWith("com.avaya.jvm")) {
+                        oop.getOopFields().getValue(fieldName, frame.getOperandStack());
+                    }
+                }
+                // 181
+                case PUTFIELD -> {
+                    logger.debug("PUTFIELD >> ");
+                    ConstantFieldrefInfo fieldref = (ConstantFieldrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String className = fieldref.resolveClassName(constantPool).replace('/', '.');
+                    String fieldName = fieldref.resolveFieldName(constantPool);
+                    ValueType fieldType = fieldref.resolveFieldType(constantPool);
+                    if (className.startsWith("java")){
+                        // TODO: implement it later
+                    } else if (className.startsWith("com.avaya.jvm")) {
+                        FieldArray.oopSetValue(fieldName, fieldType, frame.getOperandStack());
+                    }
                 }
                 // 182
                 case INVOKEVIRTUAL -> {
@@ -1330,14 +1371,14 @@ public class BytecodeInterpreter {
                     if (objectClassName.startsWith("java")) {
                         // TODO: handle Static JRE Library Methods
                         if (objectClassName.equals("java/lang/Object")){
-                            // do nothing for the root class
+                            // do nothing for the root class, but pop THIS
+                            frame.getOperandStack().popRef();
                         } else {
                             // normal instanceMethod
                             callJavaNativeMethod(methodref, constantPool);
                         }
-                    }
-                    // Self-defined classes (com.avaya.jvm.*)
-                    else if (objectClassName.startsWith("com/avaya/jvm")){
+                    } else if (objectClassName.startsWith("com/avaya/jvm")){
+                        // Self-defined classes (com.avaya.jvm.*)
                         InstanceKlass klass = BootClassLoader.loadKlass(objectClassName.replace('/', '.'));
                         MethodInfo methodInfo = null;
                         for (int i = 0; i < klass.getMethods().size(); i++){

@@ -90,17 +90,21 @@ public class HelloWorld {
 
 //        switchCase();
 
-//        Derived.y = 10;
-//        int a = Derived.y;
-//        System.out.println(a);
-//
-//        Base p = new Derived();
-//        p.hello();
-//        p.nonvirtual();
-//
-//        System.out.println(p.x);
-//        p.x = 5;
-//        System.out.println(p.x);
+        objectFields();
+    }
+
+    public static void objectFields() {
+        Derived.y = 10;
+        int a = Derived.y;
+        System.out.println(a);
+
+        Base p = new Derived();
+        p.hello();
+        p.nonvirtual();
+
+        System.out.println(p.x);
+        p.x = 5;
+        System.out.println(p.x);
     }
 
     public static void switchCase() {
