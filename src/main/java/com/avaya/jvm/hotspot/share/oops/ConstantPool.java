@@ -85,6 +85,12 @@ public class ConstantPool {
                     int nameAndTypeIndex = dis.readUnsignedShort();
                     add(new ConstantMethodrefInfo(classIndex, nameAndTypeIndex));
                 }
+                // 11
+                case JVM_CONSTANT_INTERFACE_METHODREF ->  {
+                    int classIndex = dis.readUnsignedShort();
+                    int nameAndTypeIndex = dis.readUnsignedShort();
+                    add(new ConstantInterfaceMethodrefInfo(classIndex, nameAndTypeIndex));
+                }
                 // 12
                 case JVM_CONSTANT_NAME_AND_TYPE -> {
                     int nameIndex = dis.readUnsignedShort();

@@ -1415,6 +1415,36 @@ public class BytecodeInterpreter {
                         callStaticMethod(methodInfo);
                     }
                 }
+                // 185
+                case INVOKEINTERFACE -> {
+                    logger.debug("INVOKEINTERFACE >> ");
+                    ConstantInterfaceMethodrefInfo interfaceMethodref = (ConstantInterfaceMethodrefInfo)(constantPool.getEntries().get(bytecodeStream.getU2()));
+                    String objectClassName = interfaceMethodref.resolveClassName(constantPool);
+                    String methodName = interfaceMethodref.resolveMethodName(constantPool);
+                    Descriptor methodDescriptor = interfaceMethodref.resolveMethodDescriptor(constantPool);
+                    int countByte = bytecodeStream.getU1();
+                    int zeroByte = bytecodeStream.getU1();
+
+                    // Handle JRE library classes (java.*).
+                    if (objectClassName.startsWith("java")) {
+                        // TODO: implement it later
+                    } else if (objectClassName.startsWith("com/avaya/jvm")) {
+                        // TODO: currently, it is a simple one without i-table, will do it later
+                        InstanceKlass klass = BootClassLoader.loadKlass(objectClassName.replace('/', '.'));
+                        MethodInfo methodInfo = null;
+                        for (int i = 0; i < klass.getMethods().size(); i++) {
+                            MethodInfo method = klass.getMethods().get(i);
+                            if (method.getName().equals(methodName)) {
+                                methodInfo = method;
+                                break;
+                            }
+                        }
+                        // interface behavior as polymorphism...
+                        // We can use this function since I don't implement v-table...
+                        callPolyInstanceMethod(methodInfo);
+                    }
+
+                }
                 // 187
                 case NEW -> {
                     logger.debug("NEW >> ");

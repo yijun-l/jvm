@@ -1,5 +1,38 @@
 package com.avaya.jvm.example;
 
+interface Greeter {
+    void sayHello();
+    void sayGoodbye();
+}
+
+interface Informer {
+    void showInfo();
+    void showStatus();
+}
+
+class SimpleGreeter implements Greeter, Informer {
+    @Override
+    public void sayHello() {
+        System.out.println("hello");
+    }
+
+    @Override
+    public void sayGoodbye() {
+        System.out.println("goodbye");
+    }
+
+    @Override
+    public void showInfo() {
+        System.out.println("info");
+    }
+
+    @Override
+    public void showStatus() {
+        System.out.println("status");
+    }
+}
+
+
 class Base {
     public int x = 1;
 
@@ -90,7 +123,24 @@ public class HelloWorld {
 
 //        switchCase();
 
-        objectFields();
+//        objectFields();
+
+        great();
+    }
+
+    public static void great(){
+        Informer informer = new SimpleGreeter();
+        Greeter greeter = new SimpleGreeter();
+        greeter.sayHello();
+        greeter.sayGoodbye();
+        informer.showInfo();
+        informer.showStatus();
+
+        SimpleGreeter simpleGreeter = new SimpleGreeter();
+        simpleGreeter.sayHello();
+        simpleGreeter.sayGoodbye();
+        simpleGreeter.showInfo();
+        simpleGreeter.showStatus();
     }
 
     public static void objectFields() {

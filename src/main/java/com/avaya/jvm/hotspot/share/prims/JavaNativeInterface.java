@@ -84,6 +84,12 @@ public class JavaNativeInterface {
                 break;
             }
         }
+        if (code_attr == null){
+            int TMP_MAX_LENGTH = 100;
+            code_attr = new CodeAttribute();
+            code_attr.setMaxLocals(TMP_MAX_LENGTH);
+            code_attr.setMaxStack(TMP_MAX_LENGTH);
+        }
         JavaVFrame oldFrame = (JavaVFrame) thread.getStack().peek();
         JavaVFrame tmpFrame = new JavaVFrame(code_attr);
         transferArguments(oldFrame, tmpFrame, method.getDescriptor().parseDescriptor(), true);
