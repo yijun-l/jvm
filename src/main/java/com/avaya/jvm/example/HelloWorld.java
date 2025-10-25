@@ -125,9 +125,22 @@ public class HelloWorld {
 
 //        objectFields();
 
-        great();
+//        great();
+
+        exceptionHandling();
     }
 
+    public static void exceptionHandling(){
+        try {
+            //            int i = 0;
+            throw new Exception("My own exception");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        } finally {
+            System.out.println("Finally always executes");
+        }
+    }
+    
     public static void great(){
         Informer informer = new SimpleGreeter();
         Greeter greeter = new SimpleGreeter();

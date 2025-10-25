@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +28,7 @@ public class JavaNativeInterface {
         return null;
     }
 
-    public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException {
+    public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException, InstantiationException {
         logger.debug("function {}() is called", method.getName());
 
         JavaThread thread = Threads.getCurrentThread();
@@ -51,7 +52,7 @@ public class JavaNativeInterface {
         BytecodeInterpreter.run(thread, code_attr.getCode());
     }
 
-    public static void callJavaNativeMethod(ConstantMethodrefInfo methodref, ConstantPool constantPool) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public static void callJavaNativeMethod(ConstantMethodrefInfo methodref, ConstantPool constantPool) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
         String methodName = methodref.resolveMethodName(constantPool);
         Descriptor methodDescriptor = methodref.resolveMethodDescriptor(constantPool);
         logger.debug("jre native method {}() is called", methodName);
@@ -68,12 +69,29 @@ public class JavaNativeInterface {
         // Pop the object reference owning this method
         Object targetObject = frame.getOperandStack().popRef();
         // Retrieve the Method object, and invoke it
-        Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
-        method.invoke(targetObject, objectList.toArray(new Object[0]));
-
+        if (methodName.equals("<init>")){
+            // do nothing as already created and initialized in NEW bytecode
+            Class<?> clazz = Class.forName(methodref.resolveClassName(constantPool).replace('/', '.'));
+            Constructor<?> constructor = clazz.getDeclaredConstructor(classList.toArray(new Class<?>[0]));
+            constructor.setAccessible(true);
+            Object obj = constructor.newInstance(objectList.toArray(new Object[0]));
+            frame.getOperandStack().popN(objectList.size());
+            frame.getOperandStack().pushRef(obj);
+        } else {
+            Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
+            if (methodDescriptor.getReturnType() != null){
+                // only implement Object return type
+                // TODO: create a function for different return type based on methodDescriptor.getReturnType()
+                Object obj = method.invoke(targetObject, objectList.toArray(new Object[0]));
+                frame.getOperandStack().pushRef(obj);
+            } else{
+                // void
+                method.invoke(targetObject, objectList.toArray(new Object[0]));
+            }
+        }
     }
 
-    public static void callPolyInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public static void callPolyInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         logger.debug("instance polymorphism method {}() is called", method.getName());
         JavaThread thread = Threads.getCurrentThread();
         CodeAttribute code_attr = null;
@@ -123,7 +141,7 @@ public class JavaNativeInterface {
         BytecodeInterpreter.run(thread, code_attr.getCode());
     }
 
-    public static void callInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public static void callInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
         logger.debug("instance method {}() is called", method.getName());
         JavaThread thread = Threads.getCurrentThread();
         CodeAttribute code_attr = null;

@@ -4,6 +4,7 @@ public enum AttributeType {
     CODE("Code"),
     LINE_NUMBER_TABLE("LineNumberTable"),
     LOCAL_VARIABLE_TABLE("LocalVariableTable"),
+    STACK_MAP_TABLE("StackMapTable"),
     SOURCE_FILE("SourceFile"),
     UNKNOWN("Unknown");
 

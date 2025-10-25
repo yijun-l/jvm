@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
 
@@ -21,7 +22,7 @@ import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
 public class BytecodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(BytecodeInterpreter.class);
 
-    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException {
+    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException, InstantiationException {
         JavaVFrame frame = (JavaVFrame) thread.getStack().peek();
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
         bytecodeStream.resetIndex();
@@ -1452,7 +1453,9 @@ public class BytecodeInterpreter {
                     String objectClassName = classInfo.resolveName(constantPool);
                     if (objectClassName.startsWith("java")) {
                         // JRE Library Classes
-                        // Do nothing here as we would directly use keyword "new" in constructor <init>
+                        // Do nothing and will directly new this object in constructor <init>
+                        frame.getOperandStack().pushRef(null);
+
                     } else {
                         // user-defined class
                         InstanceOop oop = new InstanceOop(objectClassName);
@@ -1490,6 +1493,35 @@ public class BytecodeInterpreter {
                     ArrayOop array = (ArrayOop) frame.getOperandStack().popRef();
                     int length = array.getLength();
                     frame.getOperandStack().pushInt(length);
+                }
+                // 191
+                case ATHROW -> {
+                    logger.debug("ATHROW >> ");
+                    // pop the Exception object to thread
+                    Throwable exception = (Throwable) frame.getOperandStack().popRef();
+                    thread.setCurrentException(exception);
+                    // get current pc
+                    int currentIndex = bytecodeStream.getIndex() - 1;
+                    // get Exception Table from CodeAttribute
+                    List<CodeAttribute.ExceptionTableEntry> exceptionTable = bytecodeStream.getCode().getExceptionTable();
+                    boolean notCatched = true;
+                    for (CodeAttribute.ExceptionTableEntry entry : exceptionTable){
+                        if (currentIndex >= entry.getStartPc() || currentIndex < entry.getEndPc()){
+                            // catch
+                            ConstantClassInfo targetClass = (ConstantClassInfo) constantPool.getEntries().get(entry.getCatchType());
+                            String targetClassName = targetClass.resolveName(constantPool);
+                            if(exception.getClass().getName().equals(targetClassName.replace('/', '.'))){
+                                bytecodeStream.index = entry.getHandlerPc();
+                                frame.getOperandStack().pushRef(exception);
+                                notCatched = false;
+                                break;
+                            }
+                        }
+                    }
+                    // no catch for this exception, directly go to previous frame
+                    if (notCatched) {
+                        thread.getStack().pop();
+                    }
                 }
                 // 198,
                 case IFNULL -> {

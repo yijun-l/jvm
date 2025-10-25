@@ -12,7 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class App {
 
-    public static void main(String[] args) throws IOException, NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    public static void main(String[] args) throws IOException, NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException {
         InstanceKlass klass = BootClassLoader.loadKlass("com.avaya.jvm.example.HelloWorld");
         MethodInfo main = JavaNativeInterface.getMain(klass);
 

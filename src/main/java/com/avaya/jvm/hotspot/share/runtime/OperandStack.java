@@ -28,6 +28,14 @@ public class OperandStack {
         top -= 2;
     }
 
+    public void popN(int value){
+        top -= value;
+    }
+
+    public void fakePush(){
+        top++;
+    }
+
     public void swap(){
         ValueType t1 = stack[top].getType();
         ValueType t2 = stack[top - 1].getType();
