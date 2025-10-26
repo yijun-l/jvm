@@ -79,14 +79,14 @@ public class JavaNativeInterface {
             frame.getOperandStack().pushRef(obj);
         } else {
             Method method = targetObject.getClass().getMethod(methodName, classList.toArray(new Class<?>[0]));
-            if (methodDescriptor.getReturnType() != null){
+            if (methodDescriptor.getReturnType().equals("V")){
+                // void
+                method.invoke(targetObject, objectList.toArray(new Object[0]));
+            } else{
                 // only implement Object return type
                 // TODO: create a function for different return type based on methodDescriptor.getReturnType()
                 Object obj = method.invoke(targetObject, objectList.toArray(new Object[0]));
                 frame.getOperandStack().pushRef(obj);
-            } else{
-                // void
-                method.invoke(targetObject, objectList.toArray(new Object[0]));
             }
         }
     }

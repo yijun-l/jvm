@@ -58,78 +58,81 @@ public class HelloWorld {
 
     public static void main(String[] args) {
 
-//        byte b = 3;
-//        System.out.println(b);
-//
-//        char c = 69;
-//        System.out.println(c);
-//
-//        int i = 1200;
-//        System.out.println(i);
-//
-//        short s = 100;
-//        System.out.println(s);
-//
-//        boolean v = true;
-//        System.out.println(v);
-//
-//        float f = 3.14f;
-//        System.out.println(f);
+        boolean enableAllTests = true;
+        if (enableAllTests) {
+            byte b = 3;
+            System.out.println(b);
 
-//        long j = 8888;
-//        System.out.println(j);
-//
-//        double d = 3.1415926;
-//        System.out.println(d);
-//
-//        System.out.println("hello, world");
+            char c = 69;
+            System.out.println(c);
 
-//        int2Long();
-//        int2Float();
-//        int2Double();
-//
-//        long2Int();
-//        long2Float();
-//        long2Double();
-//
-//        float2Int();
-//        float2Long();
-//        float2Double();
-//
-//        double2Int();
-//        double2Long();
-//        double2Float();
+            int i = 1200;
+            System.out.println(i);
 
-//        intCal();
-//        longCal();
-//        floatCal();
-//        doubleCal();
+            short s = 100;
+            System.out.println(s);
 
-//        intBit();
-//        longBit();
+            boolean v = true;
+            System.out.println(v);
 
-//        intCompare();
-//        otherCompare();
+            float f = 3.14f;
+            System.out.println(f);
 
-//        initArray();
-//        HelloWorld test = new HelloWorld();
+            long j = 8888;
+            System.out.println(j);
 
-//        intRet();
-//        longRet();
-//        floatRet();
-//        doubleRet();
-//
-//        printRet();
+            double d = 3.1415926;
+            System.out.println(d);
 
-//        switchCase();
+            System.out.println("hello, world");
 
-//        objectFields();
+            int2Long();
+            int2Float();
+            int2Double();
 
-//        great();
+            long2Int();
+            long2Float();
+            long2Double();
 
-//        exceptionHandling();
+            float2Int();
+            float2Long();
+            float2Double();
 
-        wideIINC();
+            double2Int();
+            double2Long();
+            double2Float();
+
+            intCal();
+            longCal();
+            floatCal();
+            doubleCal();
+
+            intBit();
+            longBit();
+
+            intCompare();
+            otherCompare();
+
+            initArray();
+            HelloWorld test = new HelloWorld();
+
+            intRet();
+            longRet();
+            floatRet();
+            doubleRet();
+
+            printRet();
+
+            switchCase();
+
+            objectFields();
+
+            great();
+
+            exceptionHandling();
+
+            wideIINC();
+        }
     }
 
     public static void wideIINC() {
