@@ -26,6 +26,7 @@ public class BytecodeInterpreter {
         JavaVFrame frame = (JavaVFrame) thread.getStack().peek();
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
         bytecodeStream.resetIndex();
+        boolean isWide = false;
         while (!bytecodeStream.end()){
             switch (Bytecodes.fromOpcode(bytecodeStream.getU1())){
                 // 0, do nothing
@@ -188,27 +189,62 @@ public class BytecodeInterpreter {
                 // 21, load int from local variable (index specified by next byte) onto stack
                 case ILOAD -> {
                     logger.debug("ILOAD >> ");
-                    frame.getOperandStack().pushInt(frame.getLocals().getInt(bytecodeStream.getU1()));
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getOperandStack().pushInt(frame.getLocals().getInt(index));
                 }
                 // 22, load long from local variable (index specified by next byte) onto stack
                 case LLOAD -> {
                     logger.debug("LLOAD >> ");
-                    frame.getOperandStack().pushLong(frame.getLocals().getLong(bytecodeStream.getU1()));
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getOperandStack().pushLong(frame.getLocals().getLong(index));
                 }
                 // 23, load float from local variable (index specified by next byte) onto stack
                 case FLOAD -> {
                     logger.debug("FLOAD >> ");
-                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(bytecodeStream.getU1()));
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getOperandStack().pushFloat(frame.getLocals().getFloat(index));
                 }
                 // 24, load double from local variable (index specified by next byte) onto stack
                 case DLOAD -> {
                     logger.debug("DLOAD >> ");
-                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(bytecodeStream.getU1()));
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getOperandStack().pushDouble(frame.getLocals().getDouble(index));
                 }
                 // 25, load array from local variable (index specified by next byte) onto stack
                 case ALOAD -> {
                     logger.debug("ALOAD >> ");
-                    frame.getOperandStack().pushRef(frame.getLocals().getRef(bytecodeStream.getU1()));
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getOperandStack().pushRef(frame.getLocals().getRef(index));
                 }
                 // 26, load int from local variable 0 onto stack
                 case ILOAD_0 -> {
@@ -377,27 +413,62 @@ public class BytecodeInterpreter {
                 // 54, store int from stack into local variable (index specified by next byte)
                 case ISTORE -> {
                     logger.debug("ISTORE >> ");
-                    frame.getLocals().setInt(bytecodeStream.getU1(), frame.getOperandStack().popInt());
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getLocals().setInt(index, frame.getOperandStack().popInt());
                 }
                 // 55, store long from stack into local variable (index specified by next byte)
                 case LSTORE -> {
                     logger.debug("LSTORE >> ");
-                    frame.getLocals().setLong(bytecodeStream.getU1(), frame.getOperandStack().popLong());
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getLocals().setLong(index, frame.getOperandStack().popLong());
                 }
                 // 56, store float from stack into local variable (index specified by next byte)
                 case FSTORE -> {
                     logger.debug("FSTORE >> ");
-                    frame.getLocals().setFloat(bytecodeStream.getU1(), frame.getOperandStack().popFloat());
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getLocals().setFloat(index, frame.getOperandStack().popFloat());
                 }
                 // 57, store double from stack into local variable (index specified by next byte)
                 case DSTORE -> {
                     logger.debug("DSTORE >> ");
-                    frame.getLocals().setDouble(bytecodeStream.getU1(), frame.getOperandStack().popDouble());
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getLocals().setDouble(index, frame.getOperandStack().popDouble());
                 }
                 // 58, store array from stack into local variable (index specified by next byte)
                 case ASTORE -> {
                     logger.debug("ASTORE >> ");
-                    frame.getLocals().setRef(bytecodeStream.getU1(), frame.getOperandStack().popRef());
+                    int index;
+                    if (isWide){
+                        index = bytecodeStream.getU2();
+                        isWide = false;
+                    } else {
+                        index = bytecodeStream.getU1();
+                    }
+                    frame.getLocals().setRef(index, frame.getOperandStack().popRef());
                 }
                 // 59, store int from stack into local variable 0
                 case ISTORE_0 -> {
@@ -867,8 +938,19 @@ public class BytecodeInterpreter {
                 // 132, read local index (1 byte) and signed increment (1 byte), add to variable, store back.
                 case IINC -> {
                     logger.debug("IINC >> ");
-                    int index = bytecodeStream.getU1();
-                    int increment = (byte) bytecodeStream.getU1();
+                    int index;
+                    int increment;
+                    if (isWide){
+                        // wide: index (2 bytes), increment (2 bytes, signed)
+                        index = bytecodeStream.getU2();
+                        increment = (short) bytecodeStream.getU2();
+                        // reset value after use
+                        isWide = false;
+                    } else {
+                        // normal: index (1 byte), increment (1 byte, signed)
+                        index = bytecodeStream.getU1();
+                        increment = (byte) bytecodeStream.getU1();
+                    }
                     frame.getLocals().setInt(index, frame.getLocals().getInt(index) + increment);
                 }
                 // 133, int to long
@@ -1522,6 +1604,16 @@ public class BytecodeInterpreter {
                     if (notCatched) {
                         thread.getStack().pop();
                     }
+                }
+                // 198,
+                case WIDE -> {
+                    logger.debug("WIDE >> ");
+                    // WIDE applies to the following instructions:
+                    //   ILOAD, FLOAD, ALOAD, LLOAD, DLOAD
+                    //   ISTORE, FSTORE, ASTORE, LSTORE, DSTORE
+                    //   IINC
+                    // RET is not supported in this implementation
+                    isWide = true;
                 }
                 // 198,
                 case IFNULL -> {

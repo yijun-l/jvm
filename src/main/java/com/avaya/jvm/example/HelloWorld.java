@@ -127,7 +127,15 @@ public class HelloWorld {
 
 //        great();
 
-        exceptionHandling();
+//        exceptionHandling();
+
+        wideIINC();
+    }
+
+    public static void wideIINC() {
+        int x = 0;
+        x += 300;
+        System.out.println(x);
     }
 
     public static void exceptionHandling(){
