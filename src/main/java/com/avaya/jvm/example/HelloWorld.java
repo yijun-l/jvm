@@ -58,7 +58,7 @@ public class HelloWorld {
 
     public static void main(String[] args) {
 
-        boolean enableAllTests = true;
+        boolean enableAllTests = false;
         if (enableAllTests) {
             byte b = 3;
             System.out.println(b);
@@ -133,6 +133,20 @@ public class HelloWorld {
 
             wideIINC();
         }
+
+        typeCheckExample();
+    }
+
+
+    public static void typeCheckExample() {
+        Object obj = "hello";
+
+        if (obj instanceof String) {
+            System.out.println("obj is a String");
+        }
+
+        String s = (String) obj;
+        System.out.println(s);
     }
 
     public static void wideIINC() {
