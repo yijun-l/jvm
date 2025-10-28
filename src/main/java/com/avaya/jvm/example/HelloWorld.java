@@ -58,7 +58,7 @@ public class HelloWorld {
 
     public static void main(String[] args) {
 
-        boolean enableAllTests = false;
+        boolean enableAllTests = true;
         if (enableAllTests) {
             byte b = 3;
             System.out.println(b);
@@ -135,10 +135,8 @@ public class HelloWorld {
 
             typeCheckExample();
 
+            arrayCreate();
         }
-
-        arrayCreate();
-
     }
 
     public static void arrayCreate() {

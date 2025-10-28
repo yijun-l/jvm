@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
@@ -1372,6 +1371,12 @@ public class BytecodeInterpreter {
                 case RETURN -> {
                     logger.debug("RETURN >> ");
                     thread.getStack().pop();
+                    if (!thread.getStack().isEmpty()) {
+                        frame = (JavaVFrame) thread.getStack().peek();
+                    } else {
+                        // thread has no more frames to execute and is ready to exit
+                        frame = null;
+                    }
                 }
 
                 // 178
@@ -1619,27 +1624,36 @@ public class BytecodeInterpreter {
                     // pop the Exception object to thread
                     Throwable exception = (Throwable) frame.getOperandStack().popRef();
                     thread.setCurrentException(exception);
-                    // get current pc
-                    int currentIndex = bytecodeStream.getIndex() - 1;
-                    // get Exception Table from CodeAttribute
-                    List<CodeAttribute.ExceptionTableEntry> exceptionTable = bytecodeStream.getCode().getExceptionTable();
-                    boolean notCatched = true;
-                    for (CodeAttribute.ExceptionTableEntry entry : exceptionTable){
-                        if (currentIndex >= entry.getStartPc() || currentIndex < entry.getEndPc()){
-                            // catch
-                            ConstantClassInfo targetClass = (ConstantClassInfo) constantPool.getEntries().get(entry.getCatchType());
-                            String targetClassName = targetClass.resolveName(constantPool);
-                            if(exception.getClass().getName().equals(targetClassName.replace('/', '.'))){
-                                bytecodeStream.index = entry.getHandlerPc();
-                                frame.getOperandStack().pushRef(exception);
-                                notCatched = false;
-                                break;
+
+                    boolean handled = false;
+
+                    while (!handled && !thread.getStack().isEmpty()){
+                        frame = (JavaVFrame) thread.getStack().peek();
+                        // get current pc
+                        int currentIndex = bytecodeStream.getIndex() - 1;
+                        // get Exception Table from CodeAttribute
+                        List<CodeAttribute.ExceptionTableEntry> exceptionTable = bytecodeStream.getCode().getExceptionTable();
+                        for (CodeAttribute.ExceptionTableEntry entry : exceptionTable){
+                            if (currentIndex >= entry.getStartPc() && currentIndex < entry.getEndPc()){
+                                // catch
+                                ConstantClassInfo targetClass = (ConstantClassInfo) constantPool.getEntries().get(entry.getCatchType());
+                                String targetClassName = targetClass.resolveName(constantPool);
+                                if(exception.getClass().getName().equals(targetClassName.replace('/', '.'))){
+                                    bytecodeStream.index = entry.getHandlerPc();
+                                    frame.getOperandStack().pushRef(exception);
+                                    handled = true;
+                                    break;
+                                }
                             }
                         }
+                        // no catch for this exception, directly go to previous frame
+                        if (!handled) {
+                            thread.getStack().pop();
+                        }
                     }
-                    // no catch for this exception, directly go to previous frame
-                    if (notCatched) {
-                        thread.getStack().pop();
+                    // thread has no more frames to execute and is ready to exit
+                    if (thread.getStack().isEmpty()){
+                        frame = null;
                     }
                 }
                 // 192
