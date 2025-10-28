@@ -9,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
@@ -382,8 +384,13 @@ public class BytecodeInterpreter {
                 case AALOAD -> {
                     logger.debug("AALOAD >> ");
                     int index = frame.getOperandStack().popInt();
-                    ObjectArrayOop array = (ObjectArrayOop)frame.getOperandStack().popRef();
-                    InstanceOop value = array.get(index);
+                    Object array = frame.getOperandStack().popRef();
+                    Object value;
+                    if (array instanceof ObjectArrayOop){
+                        value = ((ObjectArrayOop)array).get(index);
+                    } else{
+                        value = Array.get(array, index);
+                    }
                     frame.getOperandStack().pushRef(value);
                 }
                 // 51
@@ -605,10 +612,14 @@ public class BytecodeInterpreter {
                 // 83
                 case AASTORE -> {
                     logger.debug("AASTORE >> ");
-                    InstanceOop value = (InstanceOop)frame.getOperandStack().popRef();
+                    Object value = frame.getOperandStack().popRef();
                     int index = frame.getOperandStack().popInt();
-                    ObjectArrayOop array = (ObjectArrayOop)frame.getOperandStack().popRef();
-                    array.set(index, value);
+                    Object array = frame.getOperandStack().popRef();
+                    if (value instanceof InstanceOop && array instanceof ObjectArrayOop){
+                        ((ObjectArrayOop)array).set(index, (InstanceOop)value);
+                    } else {
+                        Array.set(array, index, value);
+                    }
                 }
                 // 84
                 case BASTORE -> {
@@ -1570,10 +1581,36 @@ public class BytecodeInterpreter {
 
                 }
                 // 190
+                case ANEWARRAY -> {
+                    logger.debug("ANEWARRAY >> ");
+                    // Pop array length from the operand stack
+                    int length = frame.getOperandStack().popInt();
+
+                    ConstantClassInfo classInfo = (ConstantClassInfo)constantPool.getEntries().get(bytecodeStream.getU2());
+                    String className = classInfo.resolveName(constantPool);
+
+                    Object array = null;
+
+                    if (className.startsWith("java")) {
+                        // For standard Java classes, use reflection
+                        Class<?> clazz = Class.forName(className.replace('/', '.'));
+                        array = java.lang.reflect.Array.newInstance(clazz, length);
+                    } else if (className.startsWith("com/avaya/jvm")) {
+                        // TODO: create proper ArrayKlass based on the element's instanceKlass
+                        array = new ObjectArrayOop(length);
+                    }
+                    frame.getOperandStack().pushRef(array);
+                }
+                // 190
                 case ARRAYLENGTH -> {
                     logger.debug("ARRAYLENGTH >> ");
-                    ArrayOop array = (ArrayOop) frame.getOperandStack().popRef();
-                    int length = array.getLength();
+                    Object array = frame.getOperandStack().popRef();
+                    int length = 0;
+                    if (array instanceof ArrayOop){
+                        length = ((ArrayOop)array).getLength();
+                    } else {
+                        length = java.lang.reflect.Array.getLength(array);
+                    }
                     frame.getOperandStack().pushInt(length);
                 }
                 // 191
@@ -1662,6 +1699,80 @@ public class BytecodeInterpreter {
                         }
                     }
                     frame.getOperandStack().pushInt(result);
+                }
+                // 197
+                case MULTIANEWARRAY -> {
+                    logger.debug("MULTIANEWARRAY >> ");
+
+                    ConstantClassInfo classInfo = (ConstantClassInfo)constantPool.getEntries().get(bytecodeStream.getU2());
+                    // e.g. className : "[[Ljava/lang/String;", dimensions : 2
+                    String className = classInfo.resolveName(constantPool);
+                    int dimensions = bytecodeStream.getU1();
+
+
+                    int[] dimensionList = new int[dimensions];
+                    // get each dimension from operand stack
+                    for (int i = 0; i < dimensions; i++){
+                        dimensionList[i] = frame.getOperandStack().popInt();
+                    }
+                    // swap it
+                    for (int i = 0; i < dimensions / 2; i++) {
+                        int temp = dimensionList[i];
+                        dimensionList[i] = dimensionList[dimensions - 1 - i];
+                        dimensionList[dimensions - 1 - i] = temp;
+                    }
+
+                    Object array = null;
+                    Class<?> type = null;
+                    boolean isJavaType = true;
+
+                    char c = className.charAt(dimensions);
+
+                    switch (c){
+                        case 'B' -> {
+                            type = byte.class;
+                        }
+                        case 'C' -> {
+                            type = char.class;
+                        }
+                        case 'D' -> {
+                            type = double.class;
+                        }
+                        case 'F' -> {
+                            type = float.class;
+                        }
+                        case 'I' -> {
+                            type = int.class;
+                        }
+                        case 'J' -> {
+                            type = long.class;
+                        }
+                        case 'S' -> {
+                            type = short.class;
+                        }
+                        case 'Z' -> {
+                            type = boolean.class;
+                        }
+                        case 'L' -> {
+                            String memberClassName = className.substring(dimensions + 1, className.length() - 1).replace('/', '.');
+                            if (memberClassName.startsWith("java")) {
+                                type = Class.forName(memberClassName);
+                            } else if (className.startsWith("com.avaya.jvm")) {
+                                isJavaType = false;
+                                // TODO: self-defined class
+                            }
+                        }
+                    }
+
+                    if (isJavaType){
+                        array = Array.newInstance(type, dimensionList);
+                    } else {
+                        // TODO: multi-dimentional array for self-defined class
+                        array = null;
+                    }
+
+                    frame.getOperandStack().pushRef(array);
+
                 }
                 // 198,
                 case WIDE -> {

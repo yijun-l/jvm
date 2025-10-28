@@ -132,12 +132,23 @@ public class HelloWorld {
             exceptionHandling();
 
             wideIINC();
+
+            typeCheckExample();
+
         }
 
-        typeCheckExample();
+        arrayCreate();
+
     }
 
-
+    public static void arrayCreate() {
+        String[] a = new String[4];
+        a[0] = "one";
+        String[][] b = new String[2][3];
+        b[0][0] = "x";
+        System.out.println(a.length);
+        System.out.println(b.length);
+    }
     public static void typeCheckExample() {
         Object obj = "hello";
 
