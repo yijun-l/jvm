@@ -58,6 +58,7 @@ public class BootstrapMethods extends AttributeInfo{
 
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.BOOTSTRAP_METHODS);
         this.setAttributeLength(dis.readInt());
         this.setNumBootstrapMethods(dis.readShort());
         for (int i = 0; i < getNumBootstrapMethods(); i++){

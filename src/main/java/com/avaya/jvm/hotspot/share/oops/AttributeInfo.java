@@ -8,7 +8,7 @@ import java.io.IOException;
 @Data
 public abstract class AttributeInfo {
     protected int attributeLength;
-//    protected int attributeNameIndex;
+    protected AttributeType attributeType;
     
     public abstract void parse(DataInputStream dis, ConstantPool cp) throws IOException;
 

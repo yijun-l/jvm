@@ -26,6 +26,7 @@ public class SourceFile extends AttributeInfo{
     private String sourceFile;
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.SOURCE_FILE);
         logger.debug("│   ├── Source File Attribute parsing:");
         this.attributeLength = dis.readInt();
         ConstantInfo sourceFile = cp.getEntries().get(dis.readUnsignedShort());

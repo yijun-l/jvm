@@ -11,6 +11,7 @@ public class UnknownAttribute extends AttributeInfo {
 
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.UNKNOWN);
         this.setAttributeLength(dis.readInt());
         this.info = new byte[this.attributeLength];
         dis.read(this.info);

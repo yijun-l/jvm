@@ -45,6 +45,7 @@ public class LocalVariableTable extends AttributeInfo {
 
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.LOCAL_VARIABLE_TABLE);
         this.setAttributeLength(dis.readInt());
         this.setLocalVariableTableLength(dis.readUnsignedShort());
         logger.debug("│   │   ├── Local Variable Table Attribute parsing:");

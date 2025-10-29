@@ -39,6 +39,7 @@ public class LineNumberTable extends AttributeInfo {
 
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.LINE_NUMBER_TABLE);
         this.setAttributeLength(dis.readInt());
         this.setLineNumberTableLength(dis.readUnsignedShort());
         logger.debug("│   │   ├── Line Number Table Attribute parsing:");

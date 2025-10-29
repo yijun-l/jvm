@@ -61,6 +61,7 @@ public class CodeAttribute extends AttributeInfo {
 
     @Override
     public void parse(DataInputStream dis, ConstantPool cp) throws IOException {
+        this.setAttributeType(AttributeType.CODE);
         this.attributeLength = dis.readInt();
         this.maxStack = dis.readUnsignedShort();
         this.maxLocals = dis.readUnsignedShort();
