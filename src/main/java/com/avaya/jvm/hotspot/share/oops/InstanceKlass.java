@@ -73,7 +73,7 @@ public class InstanceKlass extends Klass{
         for (int i = 0; i < attributesCount; i ++){
             AttributeInfo attributeInfoEntry = attributes.get(i);
             System.out.println("    attribute#" + i + ": ");
-            System.out.println("      attributeNameIndex: " + attributeInfoEntry.getAttributeNameIndex());
+//            System.out.println("      attributeNameIndex: " + attributeInfoEntry.getAttributeNameIndex());
             System.out.println("      attributeLength: " + attributeInfoEntry.getAttributeLength());
             if (attributeInfoEntry instanceof UnknownAttribute) {
                 byte[] info = ((UnknownAttribute) attributeInfoEntry).getInfo();

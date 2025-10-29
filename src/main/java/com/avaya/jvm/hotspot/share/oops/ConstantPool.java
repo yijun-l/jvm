@@ -97,6 +97,24 @@ public class ConstantPool {
                     int descriptorIndex = dis.readUnsignedShort();
                     add(new ConstantNameAndTypeInfo(nameIndex, descriptorIndex));
                 }
+                // 15
+                case JVM_CONSTANT_METHOD_HANDLE -> {
+                    int referenceKind = dis.readUnsignedByte();
+                    int referenceIndex = dis.readUnsignedShort();
+                    add(new ConstantMethodHandleInfo(referenceKind, referenceIndex));
+                }
+                // 16
+                case JVM_CONSTANT_METHOD_TYPE -> {
+                    int descriptorIndex = dis.readUnsignedShort();
+                    add(new ConstantMethodTypeInfo(descriptorIndex));
+                }
+                //18
+                case JVM_CONSTANT_INVOKE_DYNAMIC -> {
+                    int bootstrapMethodAttrIndex = dis.readUnsignedShort();
+                    int nameAndTypeIndex = dis.readUnsignedShort();
+                    add(new ConstantInvokeDynamicInfo(bootstrapMethodAttrIndex, nameAndTypeIndex));
+                }
+
                 default -> throw new IOException("Unsupported constant pool tag: " + tag);
             }
         }

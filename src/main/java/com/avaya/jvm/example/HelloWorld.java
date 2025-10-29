@@ -58,7 +58,7 @@ public class HelloWorld {
 
     public static void main(String[] args) {
 
-        boolean enableAllTests = true;
+        boolean enableAllTests = false;
         if (enableAllTests) {
             byte b = 3;
             System.out.println(b);
@@ -137,6 +137,13 @@ public class HelloWorld {
 
             arrayCreate();
         }
+
+        lambda();
+    }
+
+    public static void lambda() {
+        Runnable r = () -> System.out.println("Hi");
+        r.run();
     }
 
     public static void arrayCreate() {
