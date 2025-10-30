@@ -8,10 +8,8 @@ import com.avaya.jvm.hotspot.share.utilities.ValueType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
@@ -23,7 +21,7 @@ import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
 public class BytecodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(BytecodeInterpreter.class);
 
-    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, IOException, InstantiationException {
+    public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws Throwable {
         JavaVFrame frame = (JavaVFrame) thread.getStack().peek();
         ConstantPool constantPool = bytecodeStream.getKlass().getConstantPool();
         bytecodeStream.resetIndex();
@@ -1542,6 +1540,17 @@ public class BytecodeInterpreter {
                         // We can use this function since I don't implement v-table...
                         callPolyInstanceMethod(methodInfo);
                     }
+
+                }
+                // 186
+                case INVOKEDYNAMIC -> {
+                    logger.debug("INVOKEDYNAMIC >> ");
+                    ConstantInvokeDynamicInfo dynamicInfo = (ConstantInvokeDynamicInfo)constantPool.getEntries().get(bytecodeStream.getU2());
+                    // 2 bytes with zero
+                    int zero = bytecodeStream.getU2();
+
+                    Object obj = callDynamicMethod(dynamicInfo, bytecodeStream.getKlass());
+                    frame.getOperandStack().pushRef(obj);
 
                 }
                 // 187

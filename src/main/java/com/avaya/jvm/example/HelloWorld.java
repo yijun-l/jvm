@@ -54,6 +54,11 @@ class Derived extends Base {
     }
 }
 
+@FunctionalInterface
+interface CustomRunnable {
+    void run();
+}
+
 public class HelloWorld {
 
     public static void main(String[] args) {
@@ -142,7 +147,7 @@ public class HelloWorld {
     }
 
     public static void lambda() {
-        Runnable r = () -> System.out.println("Hi");
+        CustomRunnable r = () -> System.out.println("Hi");
         r.run();
     }
 

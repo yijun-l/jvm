@@ -6,7 +6,7 @@ import com.avaya.jvm.hotspot.share.runtime.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class JavaNativeInterface {
-    private static Logger logger = LoggerFactory.getLogger(JavaNativeInterface.class);
+    private static final Logger logger = LoggerFactory.getLogger(JavaNativeInterface.class);
 
     public static MethodInfo getMain(InstanceKlass klass){
         logger.info("Searching entry function...");
@@ -28,7 +28,7 @@ public class JavaNativeInterface {
         return null;
     }
 
-    public static void callStaticMethod(MethodInfo method) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, IOException, InstantiationException {
+    public static void callStaticMethod(MethodInfo method) throws Throwable {
         logger.debug("function {}() is called", method.getName());
 
         JavaThread thread = Threads.getCurrentThread();
@@ -91,7 +91,7 @@ public class JavaNativeInterface {
         }
     }
 
-    public static void callPolyInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    public static void callPolyInstanceMethod(MethodInfo method) throws Throwable {
         logger.debug("instance polymorphism method {}() is called", method.getName());
         JavaThread thread = Threads.getCurrentThread();
         CodeAttribute code_attr = null;
@@ -112,8 +112,16 @@ public class JavaNativeInterface {
         JavaVFrame tmpFrame = new JavaVFrame(code_attr);
         transferArguments(oldFrame, tmpFrame, method.getDescriptor().parseDescriptor(), true);
 
+        Object obj = tmpFrame.getLocals().getRef(0);
+        // check whether it's a lambda object
+        if (!(obj instanceof InstanceOop)){
+            Method LambdaMethod = obj.getClass().getMethods()[0];
+            LambdaMethod.setAccessible(true);
+            LambdaMethod.invoke(obj);
+            return;
+        }
         // polymorphism
-        InstanceOop oop = (InstanceOop) tmpFrame.getLocals().getRef(0);
+        InstanceOop oop = (InstanceOop) obj;
 
         // Obtain MethodInfo
         InstanceKlass oopKlass = oop.getKlass();
@@ -141,7 +149,7 @@ public class JavaNativeInterface {
         BytecodeInterpreter.run(thread, code_attr.getCode());
     }
 
-    public static void callInstanceMethod(MethodInfo method) throws IOException, NoSuchFieldException, ClassNotFoundException, InvocationTargetException, IllegalAccessException, NoSuchMethodException, InstantiationException {
+    public static void callInstanceMethod(MethodInfo method) throws Throwable {
         logger.debug("instance method {}() is called", method.getName());
         JavaThread thread = Threads.getCurrentThread();
         CodeAttribute code_attr = null;
@@ -296,5 +304,54 @@ public class JavaNativeInterface {
         }
         Collections.reverse(classList);
         Collections.reverse(objectList);
+    }
+
+    public static Object callDynamicMethod (ConstantInvokeDynamicInfo dynamicInfo, InstanceKlass klass) throws Throwable {
+        ConstantPool constantPool = klass.getConstantPool();
+        // parse ConstantNameAndTypeInfo from ConstantInvokeDynamicInfo
+        int nameTypeIndex = dynamicInfo.getNameAndTypeIndex();
+        ConstantNameAndTypeInfo nameAndType = (ConstantNameAndTypeInfo)constantPool.getEntries().get(nameTypeIndex);
+        // get the SAM (Single Abstract Method) name and return type
+        String samMethodName = nameAndType.resolveName(constantPool);
+        String returnType = nameAndType.resolveDescriptor(constantPool).getReturnType();
+        Class<?> returnClazz = Class.forName(returnType.substring(1, returnType.length() - 1).replace('/', '.'));
+
+        // get bootstrap method from ConstantInvokeDynamicInfo
+        int bootstrapIndex = dynamicInfo.getBootstrapMethodAttrIndex();
+        BootstrapMethods.BootstrapMethodsEntry bootstrapMethod = null;
+        for (AttributeInfo attributeInfo : klass.getAttributes()){
+            if (attributeInfo.getAttributeType() == AttributeType.BOOTSTRAP_METHODS){
+                bootstrapMethod = ((BootstrapMethods)attributeInfo).getMethodsTable().get(bootstrapIndex);
+            }
+        }
+        // get the bootstrap method handle and its referenced method
+        ConstantMethodHandleInfo methodHandleInfo = (ConstantMethodHandleInfo)constantPool.getEntries().get(bootstrapMethod.getBootstrapMethodRef());
+
+        // get the first bootstrap argument: the private lambda method
+        ConstantMethodHandleInfo privateLambdaHandleInfo = (ConstantMethodHandleInfo)bootstrapMethod.getArgumentsTable().get(1);
+        ConstantMethodrefInfo privateLambdamethodRef = (ConstantMethodrefInfo)constantPool.getEntries().get(privateLambdaHandleInfo.getReferenceIndex());
+
+        // Resolve the class that contains the lambda method
+        Class<?> callerClazz = Class.forName(privateLambdamethodRef.resolveClassName(constantPool).replace('/', '.'));
+
+        // Create a Lookup object with private access to the lambda class
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(callerClazz, MethodHandles.lookup());
+
+        // Get a MethodHandle for the private lambda method (no parameters)
+        // TODO: extend this to support lambdas with parameters
+        Method method = callerClazz.getDeclaredMethod(privateLambdamethodRef.resolveMethodName(constantPool));
+        MethodHandle mh = lookup.unreflect(method);
+
+        // MethodType of the lambda method
+        MethodType type = mh.type();
+
+        // Factory type: the return type is the SAM interface
+        MethodType factoryType = MethodType.methodType(returnClazz);
+
+        // use LambdaMetafactory to create a CallSite for the invokedynamic
+        CallSite callSite = LambdaMetafactory.metafactory(lookup, samMethodName, factoryType, type, mh, type);
+
+        // invoke the CallSite to obtain the lambda object implementing the SAM interface
+        return callSite.getTarget().invoke();
     }
 }
