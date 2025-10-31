@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
 
@@ -20,6 +22,7 @@ import static com.avaya.jvm.hotspot.share.prims.JavaNativeInterface.*;
  */
 public class BytecodeInterpreter {
     private static final Logger logger = LoggerFactory.getLogger(BytecodeInterpreter.class);
+    private static final ConcurrentHashMap<Object, ReentrantLock> monitorTable = new ConcurrentHashMap<>();
 
     public static void run(JavaThread thread, BytecodeStream bytecodeStream) throws Throwable {
         JavaVFrame frame = (JavaVFrame) thread.getStack().peek();
@@ -1561,7 +1564,11 @@ public class BytecodeInterpreter {
                     if (objectClassName.startsWith("java")) {
                         // JRE Library Classes
                         // Do nothing and will directly new this object in constructor <init>
-                        frame.getOperandStack().pushRef(null);
+                        if (objectClassName.startsWith("java/lang/Object")) {
+                            frame.getOperandStack().pushRef(new Object());
+                        } else {
+                            frame.getOperandStack().pushRef(null);
+                        }
 
                     } else {
                         // user-defined class
@@ -1723,6 +1730,58 @@ public class BytecodeInterpreter {
                     }
                     frame.getOperandStack().pushInt(result);
                 }
+
+                // 194,
+                case MONITORENTER -> {
+                    logger.debug("MONITORENTER >> ");
+                    Object obj = frame.getOperandStack().popRef();
+                    if (obj instanceof InstanceOop){
+                        while (true) {
+                            synchronized(obj) {
+                                Thread lockOwner = ((InstanceOop) obj).getMarkWord().getLockOwner();
+                                if (lockOwner == null || lockOwner == thread) {
+                                    ((InstanceOop) obj).getMarkWord().setLockOwner(thread);
+                                    break;
+                                }
+                                Thread.yield();
+                            }
+                        }
+                    } else {
+                        monitorTable.computeIfAbsent(obj, o -> new ReentrantLock()).lock();
+                    }
+                }
+                // 195,
+                case MONITOREXIT -> {
+                    logger.debug("MONITOREXIT >> ");
+                    Object obj = frame.getOperandStack().popRef();
+                    if (obj instanceof InstanceOop){
+                        while (true) {
+                            synchronized (obj) {
+                                Thread lockOwner = ((InstanceOop) obj).getMarkWord().getLockOwner();
+                                if (lockOwner == thread) {
+                                    ((InstanceOop) obj).getMarkWord().setLockOwner(null);
+                                    break;
+                                }
+                                Thread.yield();
+                            }
+                        }
+                    } else {
+                        ReentrantLock lock = monitorTable.get(obj);
+                        if (lock != null) {
+                            lock.unlock();
+                        }
+                    }
+                }
+                // 196,
+                case WIDE -> {
+                    logger.debug("WIDE >> ");
+                    // WIDE applies to the following instructions:
+                    //   ILOAD, FLOAD, ALOAD, LLOAD, DLOAD
+                    //   ISTORE, FSTORE, ASTORE, LSTORE, DSTORE
+                    //   IINC
+                    // RET is not supported in this implementation
+                    isWide = true;
+                }
                 // 197
                 case MULTIANEWARRAY -> {
                     logger.debug("MULTIANEWARRAY >> ");
@@ -1796,16 +1855,6 @@ public class BytecodeInterpreter {
 
                     frame.getOperandStack().pushRef(array);
 
-                }
-                // 198,
-                case WIDE -> {
-                    logger.debug("WIDE >> ");
-                    // WIDE applies to the following instructions:
-                    //   ILOAD, FLOAD, ALOAD, LLOAD, DLOAD
-                    //   ISTORE, FSTORE, ASTORE, LSTORE, DSTORE
-                    //   IINC
-                    // RET is not supported in this implementation
-                    isWide = true;
                 }
                 // 198,
                 case IFNULL -> {

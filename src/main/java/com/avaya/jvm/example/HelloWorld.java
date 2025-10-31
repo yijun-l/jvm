@@ -141,9 +141,24 @@ public class HelloWorld {
             typeCheckExample();
 
             arrayCreate();
+
+            lambda();
         }
 
-        lambda();
+        syncMethod();
+
+    }
+
+    public static void syncMethod() {
+        Object lock = new Object();
+        synchronized (lock) {
+            System.out.println("Lock native class");
+        }
+
+        Base lockOop = new Base();
+        synchronized (lockOop) {
+            System.out.println("Lock self-defined class");
+        }
     }
 
     public static void lambda() {

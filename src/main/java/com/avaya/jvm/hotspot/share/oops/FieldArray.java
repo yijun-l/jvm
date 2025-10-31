@@ -27,7 +27,7 @@ public class FieldArray {
         }
 
         for (FieldInfo entry : fieldList){
-            if (FieldAccessFlags.isStatic(entry.getAccessFlags()) == isStatic){
+            if (FieldAccessFlags.isStatic(entry.getAccessFlags())){
                 String name = entry.resolveName(constantPool);
                 ValueType type = resolveDescriptor(entry.resolveDescriptorName(constantPool));
                 FieldSlot slot = klass.getStaticFields().getFieldArray().get(index);

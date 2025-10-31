@@ -13,6 +13,7 @@ public class InstanceOop extends OopDesc{
     public InstanceOop(String className) throws IOException {
         this.klazz = BootClassLoader.loadKlass(className.replace('/', '.'));
         this.oopFields = new FieldArray((InstanceKlass)this.klazz, false);
+        this.markWord = new MarkWord();
     }
 
     public InstanceKlass getKlass(){
